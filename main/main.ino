@@ -7,13 +7,18 @@
 WiFiUDP udp;  // 建立 UDP 對象
 
 unsigned int localPort = 12345;                 // 接收廣播的埠
-const char* responseAddress = "192.168.0.189";  // 替換為 Python 廣播端的 IP 地址
+//const char* responseAddress = "192.168.0.189";  // 替換為 Python 廣播端的 IP 地址
 unsigned int responsePort = 12346;              // 回傳訊息的埠
 
-// WiFi 設定
-const char* ssid = "EE219B";                    // wifi名稱
-const char* password = "wifiyee219";            // wifi密碼
+const char* responseAddress = "192.168.100.11";  // 替換為 Python 廣播端的 IP 地址
 
+
+// WiFi 設定
+//const char* ssid = "EE219B";                    // wifi名稱
+//const char* password = "wifiyee219";            // wifi密碼
+
+const char* ssid = "1805_DADA";                    // wifi名稱
+const char* password = "all100pass";            // wifi密碼
 
 // API設定
 const char* serverUrl = "http://192.168.0.189:8000/api/bootcount";  // 請替換成你的API端點
@@ -205,6 +210,21 @@ void checkUDP() {
   }
 }
 
+unsigned long checkUDP_number() {
+  // 檢查是否有 UDP 資料
+  int packetSize = udp.parsePacket();
+  if (packetSize) {
+    // 讀取資料
+    byte buffer[4];
+    udp.read(buffer, 4);  // 假設廣播的資料是 4-byte 的整數
+    // 將資料解碼為整數
+    uint32_t receivedNumber = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
+    Serial.println(receivedNumber);
+    return receivedNumber;
+  }
+  return -1;
+}
+
 // 處理 UDP 指令
 void handleCommand(String command) {
   if (command == "start") {
@@ -290,8 +310,9 @@ void tryRcv() {
 
 }
 
+unsigned long currentTime = 0;
 void mainProgram() {
-  checkUDP();
+  currentTime = checkUDP_number();
   // 照著光表亮
   while(1){
     digitalWrite(headPin, HIGH);

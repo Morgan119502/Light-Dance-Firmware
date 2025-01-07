@@ -2,6 +2,7 @@ import pygame
 import socket
 import time
 import threading
+import struct
 
 # 初始化 Pygame
 pygame.init()
@@ -69,38 +70,52 @@ def broadcast_message(message):
     if message != "heartbeat":
         print(f"Broadcasted message: {message}")
 
-def start_action():
-    start_event.set()  # 啟用停止事件
-    threading.Thread(target=start_function, daemon=True).start()
-
+rootTime = 0
+lastTime = 0
+isRunning = False
+# 發送停止訊號，直到所有設備回應
 def start_function():
-    broadcast_message("start")
-    # while start_event.is_set():
-    #     broadcast_message("start")
-    #     time.sleep(0.001)  # 每 0.001 秒發送一次開始訊號
+    global isRunning
+    start_event.set()  # 啟動停止功能
 
-    #     # 檢查是否所有設備都已回應 "running"
-    #     all_running = all(device.status == "running" for device in devices.values())
-    #     if all_running:
-    #         print("All devices have been running.")
-    #         start_event.clear()
+    def broadcast_start():
+        while start_event.is_set():
+            broadcast_message("start")
+            time.sleep(0.1)  # 增加間隔時間以避免 CPU 過載
+
+    threading.Thread(target=broadcast_start, daemon=True).start()
+
+    while start_event.is_set():
+        # 檢查是否所有設備都已回應 "stopped"
+        all_started = all(device.task_status == "running" for device in devices.values())
+
+        # 如果所有設備已停止，結束廣播
+        if all_started:
+            print("All devices have started.")
+            rootTime = time.time()*1000
+            isRunning = True
+            start_event.clear()
 
 # 發送停止訊號，直到所有設備回應
 def stop_function():
-    while stop_event.is_set():
-        broadcast_message("stop")
-        time.sleep(0.001)  # 每 1 秒發送一次停止訊號
+    global isRunning
+    stop_event.set()  # 啟動停止功能
 
+    def broadcast_stop():
+        while stop_event.is_set():
+            broadcast_message("stop")
+            time.sleep(0.01)  # 增加間隔時間以避免 CPU 過載
+
+    threading.Thread(target=broadcast_stop, daemon=True).start()
+
+    while stop_event.is_set():
         # 檢查是否所有設備都已回應 "stopped"
-        all_stopped = True
-        for device in devices.values():
-            if device.task_status != "stopped":
-                all_stopped = False
-                break
+        all_stopped = all(device.task_status == "stopped" for device in devices.values())
 
         # 如果所有設備已停止，結束廣播
         if all_stopped:
             print("All devices have stopped.")
+            isRunning = False
             stop_event.clear()
 
 
@@ -117,7 +132,7 @@ def heartbeat_function():
 
 # 設置按鈕
 buttons = [
-    Button(50, 500, 100, 50, BLUE, "Start", WHITE, start_action),
+    Button(50, 500, 100, 50, BLUE, "Start", WHITE, start_function),
     Button(200, 500, 100, 50, RED, "Stop", WHITE, stop_function),
     Button(350, 500, 100, 50, GRAY, "Exit", BLACK, exit_action),
 ]
@@ -132,6 +147,7 @@ def get_local_ip():
 
 local_ip = get_local_ip()
 
+running = 0
 # 接收設備回應的執行緒
 def listen_for_responses():
     while not exit_event.is_set():
@@ -145,12 +161,16 @@ def listen_for_responses():
             else:
                 device_id, task_status = "Unknown", message
 
+            if task_status == "running":
+                running = 1
+            elif task_status == "stopped":
+                running = 0
             # 更新板子狀態
             if device_ip not in devices:
                 devices[device_ip] = DeviceState(device_ip, device_id)
             devices[device_ip].last_response_time = time.time()
             devices[device_ip].status = (
-                "Running" if task_status == "running" else "Connecting"
+                "Running" if running else "Connecting"
             )
             devices[device_ip].task_status = task_status
 
@@ -166,14 +186,14 @@ heartbeat_thread = threading.Thread(target=heartbeat_function, daemon=True)  # �
 heartbeat_thread.start()
 
 first = 1
-running = True
-while running:
+code_running = True
+while code_running:
     screen.fill(WHITE)
 
     # 處理事件
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            code_running = False
             exit_event.set()  # 設定退出事件
         elif event.type == pygame.MOUSEBUTTONDOWN:
             for button in buttons:
@@ -206,6 +226,17 @@ while running:
         y_offset += 30
 
     pygame.display.flip()
-    time.sleep(0.05)  # 控制刷新速度
+    time.sleep(0.005)  # 控制刷新速度
+
+    if isRunning == True:
+        currentTime = time.time()*1000
+        if currentTime - lastTime >= 1000:
+            lastTime = currentTime
+            number = currentTime - rootTime
+            number = int(number)
+            data = struct.pack("!Q", number)  # "!G" 表示網路字節序（大端）和無符號 32-bit 整數
+            sock.sendto(data, (broadcast_address, port))
+            print(f"Broadcasted number:{number}")
+
 
 pygame.quit()
