@@ -77,7 +77,10 @@ isRunning = False
 def start_function():
     broadcast_message("start")
     global isRunning
+    global rootTime
     isRunning = True
+    rootTime = time.time()*1000
+
     # start_event.set()  # 啟動停止功能
 
     # def broadcast_start():
@@ -102,8 +105,9 @@ def start_function():
 def stop_function():
     broadcast_message("stop")
     global isRunning
+    global rootTime
     isRunning = False
-    # stop_event.set()  # 啟動停止功能
+    rootTime = time.time()*1000    # stop_event.set()  # 啟動停止功能
 
     # def broadcast_stop():
     #     while stop_event.is_set():
