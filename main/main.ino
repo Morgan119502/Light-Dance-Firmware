@@ -214,7 +214,7 @@ unsigned long checkUDP_number() {
   int packetSize = udp.parsePacket();
   if (packetSize) {
     // 讀取資料
-    byte buffer[4];
+    byte buffer[4]
     udp.read(buffer, 4);  // 假設廣播的資料是 4-byte 的整數
     // 將資料解碼為整數
     uint32_t receivedNumber = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
@@ -317,11 +317,6 @@ void mainProgram() {
     digitalWrite(headPin, HIGH);
     checkUDP_number();
   }
-
-
-
-  //
-  delay(10);
 }
 
 void setup() {
