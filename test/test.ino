@@ -4,8 +4,8 @@
 #include <WiFiUdp.h>
 
 // WiFi 設置
-const char* ssid = "your-ssid";
-const char* password = "your-password";
+const char* ssid = "1805_DADA";                    // wifi名稱
+const char* password = "all100pass";            // wifi密碼
 
 // UDP 設置
 WiFiUDP udp;
@@ -17,6 +17,7 @@ const char* device_id = "Device-001";
 bool isRunning = false;
 
 void setup() {
+  delay(1000);
   Serial.begin(115200);
 
   // 連接 WiFi

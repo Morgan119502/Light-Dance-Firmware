@@ -75,48 +75,50 @@ lastTime = 0
 isRunning = False
 # 發送停止訊號，直到所有設備回應
 def start_function():
-    global isRunning
-    start_event.set()  # 啟動停止功能
+    broadcast_message("start")
+    # global isRunning
+    # start_event.set()  # 啟動停止功能
 
-    def broadcast_start():
-        while start_event.is_set():
-            broadcast_message("start")
-            time.sleep(0.1)  # 增加間隔時間以避免 CPU 過載
+    # def broadcast_start():
+    #     while start_event.is_set():
+    #         broadcast_message("start")
+    #         time.sleep(0.1)  # 增加間隔時間以避免 CPU 過載
 
-    threading.Thread(target=broadcast_start, daemon=True).start()
+    # threading.Thread(target=broadcast_start, daemon=True).start()
 
-    while start_event.is_set():
-        # 檢查是否所有設備都已回應 "stopped"
-        all_started = all(device.task_status == "running" for device in devices.values())
+    # while start_event.is_set():
+    #     # 檢查是否所有設備都已回應 "stopped"
+    #     all_started = all(device.task_status == "running" for device in devices.values())
 
-        # 如果所有設備已停止，結束廣播
-        if all_started:
-            print("All devices have started.")
-            rootTime = time.time()*1000
-            isRunning = True
-            start_event.clear()
+    #     # 如果所有設備已停止，結束廣播
+    #     if all_started:
+    #         print("All devices have started.")
+    #         rootTime = time.time()*1000
+    #         isRunning = True
+    #         start_event.clear()
 
 # 發送停止訊號，直到所有設備回應
 def stop_function():
-    global isRunning
-    stop_event.set()  # 啟動停止功能
+    broadcast_message("stop")
+    # global isRunning
+    # stop_event.set()  # 啟動停止功能
 
-    def broadcast_stop():
-        while stop_event.is_set():
-            broadcast_message("stop")
-            time.sleep(0.01)  # 增加間隔時間以避免 CPU 過載
+    # def broadcast_stop():
+    #     while stop_event.is_set():
+    #         broadcast_message("stop")
+    #         time.sleep(0.01)  # 增加間隔時間以避免 CPU 過載
 
-    threading.Thread(target=broadcast_stop, daemon=True).start()
+    # threading.Thread(target=broadcast_stop, daemon=True).start()
 
-    while stop_event.is_set():
-        # 檢查是否所有設備都已回應 "stopped"
-        all_stopped = all(device.task_status == "stopped" for device in devices.values())
+    # while stop_event.is_set():
+    #     # 檢查是否所有設備都已回應 "stopped"
+    #     all_stopped = all(device.task_status == "stopped" for device in devices.values())
 
-        # 如果所有設備已停止，結束廣播
-        if all_stopped:
-            print("All devices have stopped.")
-            isRunning = False
-            stop_event.clear()
+    #     # 如果所有設備已停止，結束廣播
+    #     if all_stopped:
+    #         print("All devices have stopped.")
+    #         isRunning = False
+    #         stop_event.clear()
 
 
 def exit_action():
