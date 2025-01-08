@@ -76,7 +76,8 @@ isRunning = False
 # 發送停止訊號，直到所有設備回應
 def start_function():
     broadcast_message("start")
-    # global isRunning
+    global isRunning
+    isRunning = True
     # start_event.set()  # 啟動停止功能
 
     # def broadcast_start():
@@ -100,7 +101,8 @@ def start_function():
 # 發送停止訊號，直到所有設備回應
 def stop_function():
     broadcast_message("stop")
-    # global isRunning
+    global isRunning
+    isRunning = False
     # stop_event.set()  # 啟動停止功能
 
     # def broadcast_stop():
