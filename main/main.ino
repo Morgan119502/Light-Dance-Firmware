@@ -12,7 +12,6 @@ unsigned int responsePort = 12346;              // 回傳訊息的埠
 
 const char* responseAddress = "192.168.100.11";  // 替換為 Python 廣播端的 IP 地址
 
-
 // WiFi 設定
 //const char* ssid = "EE219B";                    // wifi名稱
 //const char* password = "wifiyee219";            // wifi密碼
@@ -316,7 +315,7 @@ void mainProgram() {
   // 照著光表亮
   while(1){
     digitalWrite(headPin, HIGH);
-    checkUDP();
+    checkUDP_number();
   }
 
 
