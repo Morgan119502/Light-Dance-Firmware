@@ -40,7 +40,7 @@ void setup() {
   HTTPClient http;
   String response;
   //連接api
-  http.begin("http://140.113.160.136:8000/get_rand_lightlist/cnt=100/seed=1");  // API URL
+  http.begin("http://140.113.160.136:8000/get_test_lightlist/cnt=550");  // API URL
   int httpResponseCode = http.GET();
   if (httpResponseCode > 0) {
     response = http.getString();
