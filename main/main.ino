@@ -358,7 +358,7 @@ void mainProgram() {  // 照著光表亮
     btn1.read();
     if (ON) {
       i = checkUDP_number() / 1000;
-      Serial.println(i);
+      if (i < 0) continue;
       if (i < 100 && (millis() - startTime >= array[i][0] * 50)) {
         for (int j = 0; j < 7; j++) {
           leds[j][0] = array[i][j + 1] >> 8;
