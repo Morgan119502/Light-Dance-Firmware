@@ -24,10 +24,10 @@ const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2024-Oct-16-17:
 
 // 全域變數
 WiFiServer server(80);          // 設置 HTTP 伺服器埠
-bool startMainProgram = false;  // 主程式啟動開關
+bool startMainProgram = true;  // 主程式啟動開關
 bool running = false;           // 模擬任務執行狀態
 bool tryToRcv = true;           // 是否嘗試接收檔案
-String deviceId = "test03";     // 裝置名稱
+String deviceId = "test02";     // 裝置名稱
 
 // LED腳位設定
 #define switch 17
@@ -44,7 +44,7 @@ unsigned long startTime = 0;
 CRGB* leds[7] = { led1, led2, led3, led4, led5, led6, led7 };
 unsigned int array[100][8];
 EasyButton btn1(btnpin, 100, true);
-bool ON = 0;
+bool ON = 1;
 bool wifisw = 0;
 int i = 0;
 String memory;  //光表
@@ -257,7 +257,7 @@ int checkUDP_number() {
     Serial.println(receivedNumber);
     return receivedNumber;
   }
-  return -2;
+  return 0;
 }
 
 // 處理 UDP 指令
@@ -356,12 +356,12 @@ void mainProgram() {  // 照著光表亮
   while (1) {
     btn1.read();
     if (ON) {
-      int ii = checkUDP_number() / 1000;
-      if (ii != 0) i = ii;
-      else continue;
+      int ii = checkUDP_number();
+      if (ii == -1) break;
+      if (ii == 0) continue;
+      if (ii > 0) i = ii / 1000;
       Serial.println(i);
-      if (i < 0) break;
-      if (i < 100 && (millis() - startTime >= array[i][0] * 50)) {
+      if ((millis() - startTime >= array[i][0] * 50)) {
         for (int j = 0; j < 7; j++) {
           leds[j][0] = array[i][j + 1] >> 8;
           leds[j][0].nscale8(bright(array[i][j + 1]));
@@ -539,6 +539,7 @@ void loop() {
   checkHTTP();
   checkUDP_number();
   btn1.read();
+
 
   // 根據 API 狀態執行主程式
   if (startMainProgram) {
