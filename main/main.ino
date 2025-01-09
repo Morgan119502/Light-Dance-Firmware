@@ -7,17 +7,12 @@
 WiFiUDP udp;  // 建立 UDP 對象
 
 unsigned int localPort = 12345;                 // 接收廣播的埠
-//const char* responseAddress = "192.168.0.189";  // 替換為 Python 廣播端的 IP 地址
+const char* responseAddress = "192.168.0.189";  // 替換為 Python 廣播端的 IP 地址
 unsigned int responsePort = 12346;              // 回傳訊息的埠
 
-const char* responseAddress = "192.168.100.11";  // 替換為 Python 廣播端的 IP 地址
-
 // WiFi 設定
-//const char* ssid = "EE219B";                    // wifi名稱
-//const char* password = "wifiyee219";            // wifi密碼
-
-const char* ssid = "1805_DADA";                    // wifi名稱
-const char* password = "all100pass";            // wifi密碼
+const char* ssid = "EE219B";          // wifi名稱
+const char* password = "wifiyee219";  // wifi密碼
 
 // API設定
 const char* serverUrl = "http://192.168.0.189:8000/api/bootcount";  // 請替換成你的API端點
@@ -26,12 +21,12 @@ const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2024-Oct-16-17:
 //const char* remoteUrl = "http://140.113.160.136:8000/timelist/";
 
 // 全域變數
-WiFiServer server(80);      // 設置 HTTP 伺服器埠
+WiFiServer server(80);          // 設置 HTTP 伺服器埠
 bool startMainProgram = false;  // 主程式啟動開關
-bool running = false;       // 模擬任務執行狀態
-bool tryToRcv = true;       // 是否嘗試接收檔案
-// String deviceId = "test01";     // 裝置名稱
-String deviceId = "test02";     // 裝置名稱
+bool running = false;           // 模擬任務執行狀態
+bool tryToRcv = true;           // 是否嘗試接收檔案
+String deviceId = "test01";     // 裝置名稱
+// String deviceId = "test02";  // 裝置名稱
 
 const int headPin = 2;
 const int shoulderPin = 3;
@@ -46,7 +41,7 @@ void connectToWiFi() {
   WiFi.begin(ssid, password);
   Serial.print("connecting WiFi");
   while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
+    delay(100);
     Serial.print(".");
   }
   Serial.println("\nWiFi connected");
@@ -213,15 +208,30 @@ unsigned long checkUDP_number() {
   // 檢查是否有 UDP 資料
   int packetSize = udp.parsePacket();
   if (packetSize) {
+    handleCommand("number");
     // 讀取資料
-    byte buffer[4]
+    byte buffer[4];
     udp.read(buffer, 4);  // 假設廣播的資料是 4-byte 的整數
     // 將資料解碼為整數
     uint32_t receivedNumber = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
+    if (receivedNumber == 1937010544) {  // stop
+      handleCommand("stop");
+      startMainProgram = false;
+      return -1;
+    }
+    if (receivedNumber == 1937006962) {  // start
+      handleCommand("start");
+      startMainProgram = true;
+      return -2;
+    }
+    if (receivedNumber == 1751474546) {  // start
+      handleCommand("heartbeat");
+      return -2;
+    }    
     Serial.println(receivedNumber);
     return receivedNumber;
   }
-  return -1;
+  return -2;
 }
 
 // 處理 UDP 指令
@@ -245,6 +255,11 @@ void handleCommand(String command) {
   } else if (command == "heartbeat") {
     //Serial.println("Received 'heartbeat' command.");
     String response = deviceId + ": heartbeat received";
+    udp.beginPacket(responseAddress, responsePort);
+    udp.write(response.c_str());
+    udp.endPacket();
+  } else if (command == "number") {
+    String response = deviceId + ": number received";
     udp.beginPacket(responseAddress, responsePort);
     udp.write(response.c_str());
     udp.endPacket();
@@ -306,16 +321,13 @@ void testmain() {
 }
 
 void tryRcv() {
-
 }
 
 unsigned long currentTime = 0;
 void mainProgram() {
-  currentTime = checkUDP_number();
   // 照著光表亮
-  while(1){
-    digitalWrite(headPin, HIGH);
-    checkUDP_number();
+  while (1) {
+    if (checkUDP_number() == -1) break;
   }
 }
 
@@ -344,7 +356,7 @@ void setup() {
 
 void loop() {
   checkHTTP();
-  checkUDP();
+  checkUDP_number();
 
   // 根據 API 狀態執行主程式
   if (startMainProgram) {

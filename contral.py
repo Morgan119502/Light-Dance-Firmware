@@ -27,6 +27,8 @@ devices = {}
 exit_event = threading.Event()  # 新增結束程式的事件
 stop_event = threading.Event()  # 用於控制停止功能的事件
 start_event = threading.Event()  # 控制開始功能
+heartbeat_event = threading.Event()
+heartbeat_event.set()
 
 # UDP 通信相關設置
 broadcast_address = "192.168.0.255"
@@ -69,17 +71,25 @@ def broadcast_message(message):
     sock.sendto(message.encode(), (broadcast_address, port))
     if message != "heartbeat":
         print(f"Broadcasted message: {message}")
-
+count = 0
 rootTime = 0
 lastTime = 0
 isRunning = False
+heartbeatTrig = True
+
+
 # 發送停止訊號，直到所有設備回應
 def start_function():
     broadcast_message("start")
     global isRunning
     global rootTime
+    global count
+    global heartbeatTrig
     isRunning = True
     rootTime = time.time()*1000
+    count = 0
+
+    heartbeatTrig = False
 
     # start_event.set()  # 啟動停止功能
 
@@ -106,8 +116,12 @@ def stop_function():
     broadcast_message("stop")
     global isRunning
     global rootTime
+    global heartbeatTrig
+
     isRunning = False
     rootTime = time.time()*1000    # stop_event.set()  # 啟動停止功能
+
+    heartbeatTrig = True
 
     # def broadcast_stop():
     #     while stop_event.is_set():
@@ -134,9 +148,11 @@ def exit_action():
 
 # 定期發送心跳訊號
 def heartbeat_function():
-    while not exit_event.is_set():
-        broadcast_message("heartbeat")
-        time.sleep(0.1)  # 每 0.1 秒發送一次心跳訊號
+    while not exit_event.is_set():  # 只要主程式未結束，執行緒就一直運行
+        if heartbeatTrig:           # 根據 heartbeatTrig 決定是否發送心跳
+            broadcast_message("heartbeat")
+        time.sleep(0.1)          # 每 0.1 秒檢查一次
+
 
 # 設置按鈕
 buttons = [
@@ -158,6 +174,7 @@ local_ip = get_local_ip()
 running = 0
 # 接收設備回應的執行緒
 def listen_for_responses():
+    global running
     while not exit_event.is_set():
         try:
             data, addr = sock.recvfrom(1024)
@@ -178,7 +195,7 @@ def listen_for_responses():
                 devices[device_ip] = DeviceState(device_ip, device_id)
             devices[device_ip].last_response_time = time.time()
             devices[device_ip].status = (
-                "Running" if running else "Connecting"
+                "Running" if running else "Connected"
             )
             devices[device_ip].task_status = task_status
 
@@ -217,9 +234,9 @@ while code_running:
     y_offset = 50
     for ip, device in devices.items():
         # 判斷連線狀態
-        if device.last_response_time and current_time - device.last_response_time > 0.5:
+        if device.last_response_time and current_time - device.last_response_time > 2:
             device.status = "Disconnected"
-
+            
         last_seen = (
             f"{current_time - device.last_response_time:.1f} seconds ago"
             if device.last_response_time
@@ -238,13 +255,13 @@ while code_running:
 
     if isRunning == True:
         currentTime = time.time()*1000
-        if currentTime - lastTime >= 1000:
-            lastTime = currentTime
-            number = currentTime - rootTime
+        if currentTime - rootTime >= 1000*count:
+            count += 1
+            # lastTime = currentTime
+            number = currentTime - rootTime 
             number = int(number)
-            data = struct.pack("!Q", number)  # "!G" 表示網路字節序（大端）和無符號 32-bit 整數
+            data = struct.pack("!I", number)  # "!G" 表示網路字節序（大端）和無符號 32-bit 整數
             sock.sendto(data, (broadcast_address, port))
             print(f"Broadcasted number:{number}")
-
 
 pygame.quit()
