@@ -354,11 +354,13 @@ void tryRcv() {
 unsigned long currentTime = 0;
 void mainProgram() {  // 照著光表亮
   while (1) {
-    if (checkUDP_number() == -1) break;
     btn1.read();
     if (ON) {
-      i = checkUDP_number() / 1000;
-      if (i < 0) continue;
+      int ii = checkUDP_number() / 1000;
+      if (ii != 0) i = ii;
+      else continue;
+      Serial.println(i);
+      if (i < 0) break;
       if (i < 100 && (millis() - startTime >= array[i][0] * 50)) {
         for (int j = 0; j < 7; j++) {
           leds[j][0] = array[i][j + 1] >> 8;
