@@ -27,8 +27,7 @@ WiFiServer server(80);          // 設置 HTTP 伺服器埠
 bool startMainProgram = false;  // 主程式啟動開關
 bool running = false;           // 模擬任務執行狀態
 bool tryToRcv = true;           // 是否嘗試接收檔案
-String deviceId = "test01";     // 裝置名稱
-// String deviceId = "test02";  // 裝置名稱
+String deviceId = "test03";     // 裝置名稱
 
 // LED腳位設定
 #define switch 17
@@ -65,6 +64,8 @@ void connectToWiFi() {
 
 void onButton() {
   ON = !ON;
+  startMainProgram = !startMainProgram;
+  Serial.println(ON);
   if (ON) {
     startTime = millis();
     i = 0;  //按了按鈕後是要從頭開始還是接著
@@ -227,7 +228,7 @@ void checkUDP() {
   }
 }
 
-unsigned long checkUDP_number() {
+int checkUDP_number() {
   // 檢查是否有 UDP 資料
   int packetSize = udp.parsePacket();
   if (packetSize) {
@@ -355,8 +356,9 @@ void mainProgram() {  // 照著光表亮
   while (1) {
     if (checkUDP_number() == -1) break;
     btn1.read();
-    Serial.println(ON);
     if (ON) {
+      i = checkUDP_number() / 1000;
+      println(i);
       if (i < 100 && (millis() - startTime >= array[i][0] * 50)) {
         for (int j = 0; j < 7; j++) {
           leds[j][0] = array[i][j + 1] >> 8;
@@ -534,6 +536,7 @@ void setup() {
 void loop() {
   checkHTTP();
   checkUDP_number();
+  btn1.read();
 
   // 根據 API 狀態執行主程式
   if (startMainProgram) {
