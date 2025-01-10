@@ -23,11 +23,11 @@ const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2024-Oct-16-17:
 //const char* remoteUrl = "http://140.113.160.136:8000/timelist/";
 
 // 全域變數
-WiFiServer server(80);          // 設置 HTTP 伺服器埠
+WiFiServer server(80);         // 設置 HTTP 伺服器埠
 bool startMainProgram = true;  // 主程式啟動開關
-bool running = false;           // 模擬任務執行狀態
-bool tryToRcv = true;           // 是否嘗試接收檔案
-String deviceId = "test02";     // 裝置名稱
+bool running = false;          // 模擬任務執行狀態
+bool tryToRcv = true;          // 是否嘗試接收檔案
+String deviceId = "test02";    // 裝置名稱
 
 // LED腳位設定
 #define SWITCH_PIN 17
@@ -37,7 +37,7 @@ String deviceId = "test02";     // 裝置名稱
 #define LED_COUNT 7
 
 // LED setup
-const int ledPins[LED_COUNT] = {2, 3, 4, 5, 6, 7};
+const int ledPins[LED_COUNT] = { 2, 3, 4, 5, 6, 7 };
 CRGB leds[LED_COUNT][1];
 unsigned int array[CNT][8];
 EasyButton btn1(BUTTON_PIN, 100, true);
@@ -75,12 +75,12 @@ void fetchChunk(int chunk) {
     Serial.println("API fetch successful");
 
     File file;
-    if(chunk == 0) {
+    if (chunk == 0) {
       file = LittleFS.open("/lightlist.json", "w");
     } else {
       file = LittleFS.open("/lightlist.json", "a");
     }
-    
+
     if (file) {
       file.print(memoryData);
       file.close();
@@ -107,7 +107,7 @@ void fetchChunk(int chunk) {
       array[i + CHUNK_SIZE * chunk][5] = doc["color_data"][i]["leg1"];
       array[i + CHUNK_SIZE * chunk][6] = doc["color_data"][i]["leg2"];
       array[i + CHUNK_SIZE * chunk][7] = doc["color_data"][i]["shoes"];
-    }    
+    }
 
   } else {
     Serial.printf("API fetch failed with error code: %d\n", httpResponseCode);
@@ -130,7 +130,7 @@ void loadLightListFromMemory() {
       Serial.print("JSON parsing error: ");
       Serial.println(error.c_str());
       return;
-    }    
+    }
 
     for (int i = 0; i < CNT; i++) {
       array[i][0] = doc["color_data"][i]["time"];
@@ -140,7 +140,7 @@ void loadLightListFromMemory() {
       array[i][4] = doc["color_data"][i]["arm_waist"];
       array[i][5] = doc["color_data"][i]["leg1"];
       array[i][6] = doc["color_data"][i]["leg2"];
-      array[i][7] = doc["color_data"][i]["shoes"];      
+      array[i][7] = doc["color_data"][i]["shoes"];
     }
 
   } else {
@@ -172,7 +172,7 @@ void onButton() {
   Serial.println(ON);
   if (ON) {
     startTime = millis();
-    i = 0;  //按了按鈕後是要從頭開始還是接著
+    currentIndex = 0;  //按了按鈕後是要從頭開始還是接著
   }
 }
 
@@ -463,16 +463,18 @@ void mainProgram() {  // 照著光表亮
       int ii = checkUDP_number();
       if (ii == -1) break;
       if (ii == 0) continue;
-      if (ii > 0) i = ii / 1000;
-      Serial.println(i);
-      if ((millis() - startTime >= array[i][0] * 50)) {
-        for (int j = 0; j < 7; j++) {
-          leds[j][0] = array[i][j + 1] >> 8;
-          leds[j][0].nscale8(bright(array[i][j + 1]));
-          //Serial.printf("(%d, %d, %d)", red(array[i][j + 1]), green(array[i][j + 1]), blue(array[i][j + 1]));
+      if (ii > 0) currentIndex = ii / 1000;
+      Serial.println(currentIndex);
+      startTime = millis();
+      while (currentIndex < CNT) {
+        if (millis() - startTime >= array[currentIndex][0] * 50) {
+          for (int j = 0; j < LED_COUNT; j++) {
+            leds[j][0] = array[currentIndex][j + 1] >> 8;
+            leds[j][0].nscale8(calculateBrightness(array[currentIndex][j + 1]));
+          }
+          currentIndex++;
+          FastLED.show();
         }
-        i++;
-        FastLED.show();
       }
     }
   }
@@ -486,7 +488,7 @@ void setup() {
   delay(1000);
   Serial.println("Start.");
   Serial.begin(115200);
-  while (!Serial) { }
+  while (!Serial) {}
   // 連接 WiFi
   connectToWiFi();
 
@@ -577,7 +579,7 @@ void setup() {
   //     leds[i][0] = CRGB::Green;
   //   }
   // }
-    if (wifiMode) {
+  if (wifiMode) {
     Serial.println("Wi-Fi Mode");
     setupWiFiMode();
   } else {
