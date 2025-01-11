@@ -5,6 +5,20 @@
 #include <WiFiUdp.h>
 #include <FastLED.h>
 #include <EasyButton.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <SPI.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+#define SCREEN_ADDRESS 0x3C
+
+#define SDA_PIN 12
+#define SCL_PIN 13
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 WiFiUDP udp;  // 建立 UDP 對象
 
@@ -24,7 +38,7 @@ const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2024-Oct-16-17:
 
 // 全域變數
 WiFiServer server(80);         // 設置 HTTP 伺服器埠
-bool startMainProgram = true;  // 主程式啟動開關
+bool startMainProgram = false;  // 主程式啟動開關
 bool running = false;          // 模擬任務執行狀態
 bool tryToRcv = true;          // 是否嘗試接收檔案
 String deviceId = "test02";    // 裝置名稱
@@ -43,22 +57,38 @@ unsigned int array[CNT][8];
 EasyButton btn1(BUTTON_PIN, 100, true);
 
 unsigned long startTime = 0;
-bool ON = 1;
-bool wifisw = 0;
+bool ON = 0;
+bool wifiMode = false;
+
 // int i = 0;
 int currentIndex = 0;
 String memoryData;
 
 // wifi連線
 void connectToWiFi() {
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println("Connecting WiFi...");
+  display.display();
   WiFi.begin(ssid, password);
   Serial.print("connecting WiFi");
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(100);
     Serial.print(".");
   }
   Serial.println("\nWiFi connected");
   Serial.println(WiFi.localIP());  // 印出 IP 位址
+  
+  // 更新 OLED 顯示成功
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println("WiFi Connected");
+  display.setCursor(0, 16);
+  display.print("IP: ");
+  display.println(WiFi.localIP());
+  display.display();
+
   return;
 }
 
@@ -351,6 +381,7 @@ int checkUDP_number() {
     if (receivedNumber == 1937006962) {  // start
       handleCommand("start");
       startMainProgram = true;
+      currentIndex = 0;
       ON = true;
       return -2;
     }
@@ -457,16 +488,22 @@ void tryRcv() {
 
 unsigned long currentTime = 0;
 void mainProgram() {  // 照著光表亮
+  Serial.println("enter main");
   while (1) {
-    btn1.read();
+    Serial.println("enter loop");
     if (ON) {
-      int ii = checkUDP_number();
-      if (ii == -1) break;
-      if (ii == 0) continue;
-      if (ii > 0) currentIndex = ii / 1000;
-      Serial.println(currentIndex);
       startTime = millis();
       while (currentIndex < CNT) {
+        btn1.read();
+        int ii = checkUDP_number();
+        if (ii == -1) return;
+        if (ii > 0) {
+          Serial.print(ii);
+          currentIndex = ii / 1000 * 20;
+          Serial.println(currentIndex);
+        }
+        // Serial.print("currentIndex: ");
+        // Serial.println(currentIndex);
         if (millis() - startTime >= array[currentIndex][0] * 50) {
           for (int j = 0; j < LED_COUNT; j++) {
             leds[j][0] = array[currentIndex][j + 1] >> 8;
@@ -478,6 +515,7 @@ void mainProgram() {  // 照著光表亮
       }
     }
   }
+  Serial.println("out main");
 }
 
 int bright(unsigned int data) {
@@ -486,8 +524,16 @@ int bright(unsigned int data) {
 
 void setup() {
   delay(1000);
+  display.setCursor(0, 0);
+  display.println("Start.");
+  display.display();
   Serial.println("Start.");
   Serial.begin(115200);
+  
+  Wire.setSDA(SDA_PIN);
+  Wire.setSCL(SCL_PIN);
+  Wire.begin();
+
   while (!Serial) {}
   // 連接 WiFi
   connectToWiFi();
@@ -540,45 +586,9 @@ void setup() {
   }
   Serial.println("in setup");
 
-  // //連接api
-  // http.begin("http://140.113.160.136:8000/get_test_lightlist/cnt=300");
-  // JsonDocument doc;
-
   //更新光表
   wifiMode = digitalRead(SWITCH_PIN);
-  // if (wifisw) {
-  //   Serial.println("Wifi Mode");
-  //   for (int i = 0; i < 7; i++) {
-  //     leds[i][0] = CRGB::Red;
-  //     delay(500);
-  //   }
-  //   //處理光表輸入
-  //   int httpResponseCode = http.GET();
-  //   if (httpResponseCode > 0) {
-  //     memory = http.getString();
-  //     Serial.println("api success");
-  //     Serial.println("data:");
-  //     Serial.println(memory);
-  //   } else {
-  //     Serial.println("api failed");
-  //     Serial.printf("HTTP request failed, error code: %d\n", httpResponseCode);
-  //     Serial.println(http.errorToString(httpResponseCode));  // 詳細的錯誤描述
-  //   }
 
-  //   File writefile = LittleFS.open("/lightlist.json", "w");
-  //   if (writefile) {
-  //     writefile.println(memory);
-  //     writefile.close();  // 關閉檔案
-  //     Serial.println("Success writing");
-  //   } else {
-  //     Serial.println("Failed to open file for writing");
-  //   }
-  // } else {
-  //   Serial.println("Memory Mode");
-  //   for (int i = 0; i < 7; i++) {
-  //     leds[i][0] = CRGB::Green;
-  //   }
-  // }
   if (wifiMode) {
     Serial.println("Wi-Fi Mode");
     setupWiFiMode();
@@ -589,74 +599,15 @@ void setup() {
 
   Serial.println("Setup Finished OuOb");
   currentIndex = 0;
-
-  // //開啟記憶體中的光表
-  // File readfile = LittleFS.open("/lightlist.json", "r");
-  // if (readfile && readfile.size() > 0) {
-  //   Serial.println("memoryfile exist");
-  //   // 若檔案存在，解析 JSON
-  //   DeserializationError error = deserializeJson(doc, readfile);
-  //   readfile.close();
-
-  //   if (!error) {
-  //     Serial.println("Success to parse JSON");
-  //   } else {
-  //     Serial.print("Failed to parse JSON: ");
-  //     Serial.println(error.c_str());
-  //   }
-  // } else {
-  //   Serial.println("File not found, creating new memoryfile");
-  //   // 檔案不存在，建立新檔案
-  //   File newFile = LittleFS.open("/lightlist.json", "w");
-  //   if (newFile) {
-  //     newFile.println("{}");  // 建立空的 JSON 結構
-  //     newFile.close();
-  //     Serial.println("New memoryfile created");
-  //   } else {
-  //     Serial.println("Failed to create new memoryfile");
-  //   }
-  // }
-
-  // FastLED.show();
-  // delay(500);
-  // FastLED.clear();
-  // FastLED.show();
-  // //deserializeJson(doc, input);
-  // for (int i = 0; i < 100; i++) {
-  //   array[i][0] = doc["color_data"][i]["time"];
-  //   array[i][1] = doc["color_data"][i]["head"];
-  //   array[i][2] = doc["color_data"][i]["shoulder"];
-  //   array[i][3] = doc["color_data"][i]["chest"];
-  //   array[i][4] = doc["color_data"][i]["arm_waist"];
-  //   array[i][5] = doc["color_data"][i]["leg1"];
-  //   array[i][6] = doc["color_data"][i]["leg2"];
-  //   array[i][7] = doc["color_data"][i]["shoes"];
-  // }
-  // startTime = millis();
-  // btn1.begin();
-  // btn1.onPressed(onButton);
-  // pinMode(btnpin, INPUT_PULLUP);
-
-  // //檢查容量
-  // FSInfo fs_info;
-  // LittleFS.info(fs_info);
-
-  // // 顯示檔案系統的總容量和可用空間
-  // Serial.print("Total space: ");
-  // Serial.println(fs_info.totalBytes);
-
-  // Serial.print("Used space: ");
-  // Serial.println(fs_info.usedBytes);
-
-  // Serial.print("Free space: ");
-  // Serial.println(fs_info.totalBytes - fs_info.usedBytes);
 }
 
 void loop() {
   checkHTTP();
-  checkUDP_number();
+  if (checkUDP_number() > 0) {
+    ON = 1;
+    startMainProgram = 1;
+  }
   btn1.read();
-
 
   // 根據 API 狀態執行主程式
   if (startMainProgram) {
