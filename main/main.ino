@@ -523,16 +523,32 @@ int bright(unsigned int data) {
 }
 
 void setup() {
-  delay(1000);
-  display.setCursor(0, 0);
-  display.println("Start.");
-  display.display();
-  Serial.println("Start.");
-  Serial.begin(115200);
-  
   Wire.setSDA(SDA_PIN);
   Wire.setSCL(SCL_PIN);
   Wire.begin();
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;)
+      ;  // Don't proceed, loop forever
+  }
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+
+  delay(1000);
+
+  /*
+  display.setCursor(0, 0);    // 可刪掉，馬上會被刷新所以顯示不出來
+  display.println("Start.");  // 我不知道為啥上面那些東西一定要放在 delay 上面才能跑，然後少一個都不行
+  display.display();          // 就很玄  
+  */
+
+  Serial.println("Start.");
+  Serial.begin(115200);
+
+  delay(1000);
 
   while (!Serial) {}
   // 連接 WiFi
