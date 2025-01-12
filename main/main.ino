@@ -37,11 +37,13 @@ const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2024-Oct-16-17:
 //const char* remoteUrl = "http://140.113.160.136:8000/timelist/";
 
 // 全域變數
-WiFiServer server(80);         // 設置 HTTP 伺服器埠
+WiFiServer server(80);          // 設置 HTTP 伺服器埠
 bool startMainProgram = false;  // 主程式啟動開關
-bool running = false;          // 模擬任務執行狀態
-bool tryToRcv = true;          // 是否嘗試接收檔案
-String deviceId = "test02";    // 裝置名稱
+bool running = false;           // 模擬任務執行狀態
+bool tryToRcv = true;           // 是否嘗試接收檔案
+String deviceId = "test02";     // 裝置名稱
+bool firstStart = true;
+int offset = 0;
 
 // LED腳位設定
 #define SWITCH_PIN 17
@@ -79,7 +81,7 @@ void connectToWiFi() {
   }
   Serial.println("\nWiFi connected");
   Serial.println(WiFi.localIP());  // 印出 IP 位址
-  
+
   // 更新 OLED 顯示成功
   display.clearDisplay();
   display.setCursor(0, 0);
@@ -383,13 +385,15 @@ int checkUDP_number() {
       startMainProgram = true;
       currentIndex = 0;
       ON = true;
+      firstStart = false;
+      offset = 0;
       return -2;
     }
     if (receivedNumber == 1751474546) {  // start
       handleCommand("heartbeat");
       return -2;
     }
-    Serial.println(receivedNumber);
+    // Serial.println(receivedNumber);
     return receivedNumber;
   }
   return 0;
@@ -492,19 +496,35 @@ void mainProgram() {  // 照著光表亮
   while (1) {
     Serial.println("enter loop");
     if (ON) {
+      Serial.println("on");
       startTime = millis();
       while (currentIndex < CNT) {
+        // Serial.print(".");
         btn1.read();
         int ii = checkUDP_number();
         if (ii == -1) return;
         if (ii > 0) {
-          Serial.print(ii);
+          // Serial.print(ii);
           currentIndex = ii / 1000 * 20;
+          Serial.print("currentIndex: ");
           Serial.println(currentIndex);
+          if (firstStart) {
+            firstStart = false;
+            startTime = millis();
+            offset = currentIndex;
+            Serial.print("offset: ");
+            Serial.println(offset);
+          }
         }
         // Serial.print("currentIndex: ");
         // Serial.println(currentIndex);
-        if (millis() - startTime >= array[currentIndex][0] * 50) {
+        // Serial.print(currentIndex);
+        // Serial.print(" ");
+        // Serial.print(millis() - startTime);
+        // Serial.print(" ");
+        // Serial.println((currentIndex - offset) * 50);
+        if (!firstStart and millis() - startTime >= (currentIndex - offset) * 50) {
+          // Serial.println("print");
           for (int j = 0; j < LED_COUNT; j++) {
             leds[j][0] = array[currentIndex][j + 1] >> 8;
             leds[j][0].nscale8(calculateBrightness(array[currentIndex][j + 1]));
@@ -562,10 +582,6 @@ void setup() {
   // 啟動 HTTP 伺服器
   server.begin();
 
-  // 啟動 UDP 接收器
-  udp.begin(localPort);
-  Serial.printf("UDP listening on port %d\n", localPort);
-
   if (tryToRcv) tryRcv();
 
   // Initialize LED
@@ -615,6 +631,10 @@ void setup() {
 
   Serial.println("Setup Finished OuOb");
   currentIndex = 0;
+
+  // 啟動 UDP 接收器
+  udp.begin(localPort);
+  Serial.printf("UDP listening on port %d\n", localPort);
 }
 
 void loop() {

@@ -38,6 +38,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 sock.bind(("", response_port))
 exit_event = threading.Event()
+current_broadcast_message = ""
 
 # 定義每塊板子的狀態
 class DeviceState:
@@ -56,27 +57,44 @@ class Button:
         self.text = text
         self.text_color = text_color
         self.action = action
+        self.enabled = True  # 新增屬性，預設按鈕啟用
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
+        # 創建一個新的 Surface 來繪製按鈕
+        button_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
+
+        # 根據按鈕狀態設置顏色和透明度
+        if self.enabled:
+            button_surface.fill(self.color)
+        else:
+            # 禁用狀態下設置透明效果
+            button_surface.fill((*self.color[:3], 128))  # 顏色 + Alpha (透明度)
+
+        # 將按鈕繪製到主畫布
+        screen.blit(button_surface, (self.rect.x, self.rect.y))
+
+        # 繪製按鈕文字
         text_surface = font.render(self.text, True, self.text_color)
-        screen.blit(text_surface, (self.rect.x + 10, self.rect.y + 10))
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
 
     def is_clicked(self, pos):
-        return self.rect.collidepoint(pos)
+        return self.enabled and self.rect.collidepoint(pos)  # 只有啟用時才可以點擊
 
 # 按鈕動作
 
 def broadcast_message(message):
+    global current_broadcast_message
+    current_broadcast_message = message 
     sock.sendto(message.encode(), (broadcast_address, port))
     if message != "heartbeat":
         print(f"Broadcasted message: {message}")
+
 count = 0
 rootTime = 0
 lastTime = 0
 isRunning = False
 heartbeatTrig = True
-
 
 # 發送停止訊號，直到所有設備回應
 def start_function():
@@ -90,6 +108,11 @@ def start_function():
     count = 0
 
     heartbeatTrig = False
+
+    # 禁用 Start 按鈕
+    for button in buttons:
+        if button.text == "Start":
+            button.enabled = False
 
     # start_event.set()  # 啟動停止功能
 
@@ -122,6 +145,11 @@ def stop_function():
     rootTime = time.time()*1000    # stop_event.set()  # 啟動停止功能
 
     heartbeatTrig = True
+
+    # 啟用 Start 按鈕
+    for button in buttons:
+        if button.text == "Start":
+            button.enabled = True
 
     # def broadcast_stop():
     #     while stop_event.is_set():
@@ -215,6 +243,10 @@ code_running = True
 while code_running:
     screen.fill(WHITE)
 
+    # 在畫面上方顯示當前廣播的內容
+    broadcast_text = font.render(f"Current Broadcast: {current_broadcast_message}", True, BLACK)
+    screen.blit(broadcast_text, (50, 20))
+
     # 處理事件
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -236,7 +268,7 @@ while code_running:
         # 判斷連線狀態
         if device.last_response_time and current_time - device.last_response_time > 2:
             device.status = "Disconnected"
-            
+
         last_seen = (
             f"{current_time - device.last_response_time:.1f} seconds ago"
             if device.last_response_time
@@ -261,6 +293,7 @@ while code_running:
             number = currentTime - rootTime 
             number = int(number)
             data = struct.pack("!I", number)  # "!G" 表示網路字節序（大端）和無符號 32-bit 整數
+            current_broadcast_message = number
             sock.sendto(data, (broadcast_address, port))
             print(f"Broadcasted number:{number}")
 
