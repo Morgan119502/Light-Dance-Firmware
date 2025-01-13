@@ -107,11 +107,12 @@ void fetchChunk(int chunk) {
     Serial.println("API fetch successful");
 
     File file;
-    if (chunk == 0) {
+    file = LittleFS.open("/lightlist.json", "w");
+    if (chunk != 0) {
+      file.seek(file.size());
+    } /*else {
       file = LittleFS.open("/lightlist.json", "w");
-    } else {
-      file = LittleFS.open("/lightlist.json", "a");
-    }
+    }*/
 
     if (file) {
       file.print(memoryData);
