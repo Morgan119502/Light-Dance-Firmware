@@ -8,7 +8,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <SPI.h>
+//#include <SPI.h>
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -103,32 +103,45 @@ void fetchChunk(int chunk) {
 
   if (httpResponseCode > 0) {
     memoryData = http.getString();
-    Serial.println(apiUrl);
-    Serial.println("API fetch successful");
+    // Serial.println(apiUrl);
+    // Serial.println("API fetch successful");
 
-    File file;
-    file = LittleFS.open("/lightlist.json", "w");
-    if (chunk != 0) {
-      file.seek(file.size());
-    } /*else {
-      file = LittleFS.open("/lightlist.json", "w");
-    }*/
+    // File file;
+    
+    // if (chunk == 0) {
+    //   file = LittleFS.open("/lightlist.json", "w");
+    // } else {
+    //   file = LittleFS.open("/lightlist.json", "a");
+    //   if(file){
+    //     Serial.println("open success");
+    //     // String checkstring = file.readString();
+    //     // Serial.println(checkstring);
+    //   }else{
+    //     Serial.println("open failed");
+    //   }
+      
+    // }
 
-    if (file) {
-      file.print(memoryData);
-      file.close();
-      Serial.println("Data saved to memory");
-    } else {
-      Serial.println("Failed to save data to memory");
-    }
+    // if (file) {
+    //   //file.seek(file.size());
+    //   file.print(memoryData);
+    //   file.close();
+    //   Serial.println("Data saved to memory");
+    // } else {
+    //   Serial.println("Failed to save data to memory");
+    // }
 
     StaticJsonDocument<4096> doc;
     DeserializationError error = deserializeJson(doc, memoryData);
 
     if (error) {
+      Serial.print("JSON data size: ");
+      Serial.println(strlen(memoryData.c_str()));
       Serial.print("JSON parsing error: ");
       Serial.println(error.c_str());
       return;
+    }else{
+      Serial.println("deserialization success");
     }
 
     for (int i = 0; i < min(CHUNK_SIZE, CNT - CHUNK_SIZE * chunk); i++) {
@@ -149,37 +162,109 @@ void fetchChunk(int chunk) {
 }
 
 // Load data from memory
-void loadLightListFromMemory() {
-  File file = LittleFS.open("/lightlist.json", "r");
-  if (file && file.size() > 0) {
-    Serial.println("Read data in memory");
-    memoryData = file.readString();
-    file.close();
+// void loadLightListFromMemory() {
+//   File file = LittleFS.open("/lightlist.json", "r");
+//   if (file && file.size() > 0) {
+//     Serial.println("Read data in memory");
+//     memoryData = file.readString();
+//     Serial.println(memoryData);
+//     file.close();
 
-    StaticJsonDocument<4096> doc;
-    DeserializationError error = deserializeJson(doc, memoryData);
+//     StaticJsonDocument<4096> doc;
+//     DeserializationError error = deserializeJson(doc, memoryData);
 
-    if (error) {
-      Serial.print("JSON parsing error: ");
-      Serial.println(error.c_str());
-      return;
-    }
+//     if (error) {
+//       Serial.print("JSON parsing error: ");
+//       Serial.println(error.c_str());
+//       return;
+//     }
 
-    for (int i = 0; i < CNT; i++) {
-      array[i][0] = doc["color_data"][i]["time"];
-      array[i][1] = doc["color_data"][i]["head"];
-      array[i][2] = doc["color_data"][i]["shoulder"];
-      array[i][3] = doc["color_data"][i]["chest"];
-      array[i][4] = doc["color_data"][i]["arm_waist"];
-      array[i][5] = doc["color_data"][i]["leg1"];
-      array[i][6] = doc["color_data"][i]["leg2"];
-      array[i][7] = doc["color_data"][i]["shoes"];
-    }
+//     for (int i = 0; i < CNT; i++) {
+//       array[i][0] = doc["color_data"][i]["time"];
+//       array[i][1] = doc["color_data"][i]["head"];
+//       array[i][2] = doc["color_data"][i]["shoulder"];
+//       array[i][3] = doc["color_data"][i]["chest"];
+//       array[i][4] = doc["color_data"][i]["arm_waist"];
+//       array[i][5] = doc["color_data"][i]["leg1"];
+//       array[i][6] = doc["color_data"][i]["leg2"];
+//       array[i][7] = doc["color_data"][i]["shoes"];
+//     }
 
-  } else {
-    Serial.println("No data found in memory");
-  }
-}
+//   } else {
+//     Serial.println("No data found in memory");
+//   }
+// }
+// void loadLightListFromMemory() {
+//     File file = LittleFS.open("/lightlist.json", "r");
+//     if (!file || file.size() == 0) {
+//         Serial.println("No data found in memory");
+//         return;
+//     }
+
+//     const size_t bufferSize = 512; // 單次讀取的緩衝區大小
+//     char buffer[bufferSize + 1];   // +1 用於 null 結尾
+//     String incompletePart = "";  // 用於儲存上一段未完成的部分
+//     size_t offset = 0;            // 用於記錄檔案讀取的偏移量
+
+//     while (offset < file.size()) {
+//         file.seek(offset, SeekSet); // 設定檔案偏移量
+//         size_t bytesRead = file.readBytes(buffer, bufferSize);
+//         buffer[bytesRead] = '\0'; // 確保字串結尾
+//         offset += bytesRead;       // 更新偏移量
+
+//         // 將未完成部分與當前段結合
+//         String jsonChunk = incompletePart + String(buffer);
+
+//         // 嘗試解析完整 JSON
+//         StaticJsonDocument<1024> doc; // 根據實際 JSON 結構調整大小
+//         DeserializationError error = deserializeJson(doc, jsonChunk);
+
+//         if (error) {
+//             if (error == DeserializationError::IncompleteInput) {
+//                 // 若解析失敗但為不完整輸入，保留當前段作為未完成部分
+//                 incompletePart = jsonChunk;
+//             } else {
+//                 Serial.print("JSON parsing error: ");
+//                 Serial.println(error.c_str());
+//                 file.close();
+//                 return;
+//             }
+//         } else {
+//             incompletePart = ""; // 清空未完成部分
+
+//             // 確保 color_data 是陣列
+//             if (!doc["color_data"].is<JsonArray>()) {
+//                 Serial.println("color_data is not an array");
+//                 continue;
+//             }
+
+//             JsonArray colorData = doc["color_data"].as<JsonArray>();
+
+//             // 遍歷 JSON 陣列
+//             for (JsonObject obj : colorData) {
+//                 int index = obj["index"].as<int>(); // 根據 JSON 結構調整
+//                 if (index >= 0 && index < CNT) {
+//                     array[index][0] = obj["time"].as<int>();
+//                     array[index][1] = obj["head"].as<int>();
+//                     array[index][2] = obj["shoulder"].as<int>();
+//                     array[index][3] = obj["chest"].as<int>();
+//                     array[index][4] = obj["arm_waist"].as<int>();
+//                     array[index][5] = obj["leg1"].as<int>();
+//                     array[index][6] = obj["leg2"].as<int>();
+//                     array[index][7] = obj["shoes"].as<int>();
+//                 }
+//             }
+//         }
+//     }
+
+//     if (incompletePart.length() == 0) {
+//         Serial.println("Warning: Incomplete JSON data at the end of the file");
+//     }
+
+//     file.close();
+// }
+
+
 
 // Setup for Wi-Fi mode
 void setupWiFiMode() {
@@ -187,11 +272,52 @@ void setupWiFiMode() {
   for (int chunk = 0; chunk < (CNT + CHUNK_SIZE - 1) / CHUNK_SIZE; chunk++) {
     fetchChunk(chunk);
   }
+  saveArrayToFile();
 }
+
+void saveArrayToFile() {
+    File file = LittleFS.open("/array_data.bin", "w");
+    if (!file) {
+        Serial.println("Failed to open file for writing");
+        return;
+    }
+
+    for (int i = 0; i < CNT; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            file.write((uint8_t *)&array[i][j], sizeof(unsigned int));
+        }
+    }
+
+    file.close();
+    Serial.println("Array data saved to file");
+}
+void loadArrayFromFile() {
+    File file = LittleFS.open("/array_data.bin", "r");
+    if (!file) {
+        Serial.println("Failed to open file for reading");
+        return;
+    }
+
+    for (int i = 0; i < CNT; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            if (file.available()) {
+                file.read((uint8_t *)&array[i][j], sizeof(unsigned int));
+            } else {
+                Serial.println("File does not contain enough data");
+                file.close();
+                return;
+            }
+        }
+    }
+
+    file.close();
+    Serial.println("Array data loaded from file");
+}
+
 
 // Setup for Memory mode
 void setupMemoryMode() {
-  loadLightListFromMemory();
+      loadArrayFromFile();
 }
 
 // Brightness calculation
@@ -528,6 +654,7 @@ void mainProgram() {  // 照著光表亮
           // Serial.println("print");
           for (int j = 0; j < LED_COUNT; j++) {
             leds[j][0] = array[currentIndex][j + 1] >> 8;
+            //Serial.print(array[currentIndex][j + 1]);
             leds[j][0].nscale8(calculateBrightness(array[currentIndex][j + 1]));
           }
           currentIndex++;
