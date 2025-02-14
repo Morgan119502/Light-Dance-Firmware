@@ -33,7 +33,7 @@ const char* password = "wifiyee219";  // wifi密碼
 // API設定
 const char* serverUrl = "http://192.168.0.189:8000/api/bootcount";  // 請替換成你的API端點
 const char* testUrl = "http://192.168.0.189:8000/health";
-const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2024-Oct-16-17:48:58";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
+const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-22:37:21";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
 //const char* remoteUrl = "http://140.113.160.136:8000/timelist/";
 
 // 全域變數
@@ -44,7 +44,7 @@ bool tryToRcv = true;           // 是否嘗試接收檔案
 String deviceId = "test02";     // 裝置名稱
 bool firstStart = true;
 int offset = 0;
-
+int num_data;
 // LED腳位設定
 #define SWITCH_PIN 17
 #define BUTTON_PIN 16
@@ -54,10 +54,16 @@ int offset = 0;
 
 // LED setup
 const int ledPins[LED_COUNT] = { 2, 3, 4, 5, 6, 7 };
-CRGB leds[LED_COUNT][1];
+CRGB led1[5];  //頭
+CRGB led2[4];  //肩
+CRGB led3[5];  //胸、手
+CRGB led4[4];  //腰、裙
+CRGB led5[5];  //腿
+CRGB led6[3];  //前
+
 unsigned int array[CNT][8];
 EasyButton btn1(BUTTON_PIN, 100, true);
-
+CRGB* leds[6] = { led1, led2, led3, led4, led5, led6 };
 unsigned long startTime = 0;
 bool ON = 0;
 bool wifiMode = false;
@@ -93,11 +99,10 @@ void connectToWiFi() {
 
   return;
 }
-
-void fetchChunk(int chunk) {
+void fetchChunk() {
   HTTPClient http;
-  String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
-
+  //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
+  String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-22:37:21";
   http.begin(apiUrl);
   int httpResponseCode = http.GET();
 
@@ -107,7 +112,7 @@ void fetchChunk(int chunk) {
     // Serial.println("API fetch successful");
 
     // File file;
-    
+
     // if (chunk == 0) {
     //   file = LittleFS.open("/lightlist.json", "w");
     // } else {
@@ -119,7 +124,7 @@ void fetchChunk(int chunk) {
     //   }else{
     //     Serial.println("open failed");
     //   }
-      
+
     // }
 
     // if (file) {
@@ -140,26 +145,132 @@ void fetchChunk(int chunk) {
       Serial.print("JSON parsing error: ");
       Serial.println(error.c_str());
       return;
-    }else{
+    } else {
       Serial.println("deserialization success");
     }
+    const char* id = doc["_id"];
+    const char* user = doc["user"];
+    const char* update_time = doc["update_time"];
+    JsonArray players = doc["players"][0];
 
-    for (int i = 0; i < min(CHUNK_SIZE, CNT - CHUNK_SIZE * chunk); i++) {
-      array[i + CHUNK_SIZE * chunk][0] = doc["color_data"][i]["time"];
-      array[i + CHUNK_SIZE * chunk][1] = doc["color_data"][i]["head"];
-      array[i + CHUNK_SIZE * chunk][2] = doc["color_data"][i]["shoulder"];
-      array[i + CHUNK_SIZE * chunk][3] = doc["color_data"][i]["chest"];
-      array[i + CHUNK_SIZE * chunk][4] = doc["color_data"][i]["arm_waist"];
-      array[i + CHUNK_SIZE * chunk][5] = doc["color_data"][i]["leg1"];
-      array[i + CHUNK_SIZE * chunk][6] = doc["color_data"][i]["leg2"];
-      array[i + CHUNK_SIZE * chunk][7] = doc["color_data"][i]["shoes"];
+    // for (int i = 0; i < CNT; i++) {
+    //   array[i][0] = doc["players"][0][i]["time"].as<long>();
+    //   Serial.print("time: ");
+    //   Serial.println(array[i][0]);
+    //   array[i][1] = doc["players"][0][i]["head"];
+    //   array[i][2] = doc["players"][0][i]["shoulder"];
+    //   array[i][4] = doc["players"][0][i]["front"];
+    //   array[i][5] = doc["players"][0][i]["skirt"];
+    //   array[i][3] = doc["players"][0][i]["chest"];
+    //   array[i][6] = doc["players"][0][i]["leg"];
+    //   array[i][7] = doc["players"][0][i]["shoes"];
+    // }
+
+    // for (JsonObject player : players) {
+    //   array[i][0] = player["time"];
+    //   Serial.print("time: ");
+    //   Serial.println(array[i][0]);
+    //   array[i][1] = player["head"];
+    //   array[i][2] = player["shoulder"];
+    //   array[i][4] = player["chest"];
+    //   array[i][5] = player["front"];
+    //   array[i][3] = player["skirt"];
+    //   array[i][6] = player["leg"];
+    //   array[i][7] = player["shoes"];
+    // }
+
+    num_data = players.size();
+    for (int i = 0; i < num_data && i < CNT; i++) {
+      JsonObject player = players[i];
+
+      array[i][0] = player["time"];
+      Serial.print("time: ");
+      Serial.println(array[i][0]);
+
+      array[i][1] = player["head"];
+      array[i][2] = player["shoulder"];
+      array[i][4] = player["chest"];
+      array[i][5] = player["front"];
+      array[i][3] = player["skirt"];
+      array[i][6] = player["leg"];
+      array[i][7] = player["shoes"];
     }
+
+
 
   } else {
     Serial.printf("API fetch failed with error code: %d\n", httpResponseCode);
   }
   http.end();
 }
+// void fetchChunk(int chunk) {
+//   HTTPClient http;
+//   //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
+//   String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-20:35:59";
+//   http.begin(apiUrl);
+//   int httpResponseCode = http.GET();
+
+//   if (httpResponseCode > 0) {
+//     memoryData = http.getString();
+//     // Serial.println(apiUrl);
+//     // Serial.println("API fetch successful");
+
+//     // File file;
+
+//     // if (chunk == 0) {
+//     //   file = LittleFS.open("/lightlist.json", "w");
+//     // } else {
+//     //   file = LittleFS.open("/lightlist.json", "a");
+//     //   if(file){
+//     //     Serial.println("open success");
+//     //     // String checkstring = file.readString();
+//     //     // Serial.println(checkstring);
+//     //   }else{
+//     //     Serial.println("open failed");
+//     //   }
+
+//     // }
+
+//     // if (file) {
+//     //   //file.seek(file.size());
+//     //   file.print(memoryData);
+//     //   file.close();
+//     //   Serial.println("Data saved to memory");
+//     // } else {
+//     //   Serial.println("Failed to save data to memory");
+//     // }
+
+//     StaticJsonDocument<4096> doc;
+//     DeserializationError error = deserializeJson(doc, memoryData);
+
+//     if (error) {
+//       Serial.print("JSON data size: ");
+//       Serial.println(strlen(memoryData.c_str()));
+//       Serial.print("JSON parsing error: ");
+//       Serial.println(error.c_str());
+//       return;
+//     } else {
+//       Serial.println("deserialization success");
+//     }
+
+//     for (int i = 0; i < CNT); i++) {
+//       array[i][0] = doc["color_data"][i]["time"];
+//       Serial.print("time: ");
+//       Serial.println(array[i + CHUNK_SIZE * chunk][0]);
+//       array[i][1] = doc["color_data"][i]["head"];
+//       array[i][2] = doc["color_data"][i]["shoulder"];
+//       array[i][3] = doc["color_data"][i]["chest"];
+//       array[i][4] = doc["color_data"][i]["front"];
+//       array[i][5] = doc["color_data"][i]["skirt"];
+//       array[i][6] = doc["color_data"][i]["leg"];
+//       array[i][7] = doc["color_data"][i]["shoes"];
+//     }
+
+//   } else {
+//     Serial.printf("API fetch failed with error code: %d\n", httpResponseCode);
+//   }
+//   http.end();
+// }
 
 // Load data from memory
 // void loadLightListFromMemory() {
@@ -269,55 +380,56 @@ void fetchChunk(int chunk) {
 // Setup for Wi-Fi mode
 void setupWiFiMode() {
   connectToWiFi();
-  for (int chunk = 0; chunk < (CNT + CHUNK_SIZE - 1) / CHUNK_SIZE; chunk++) {
-    fetchChunk(chunk);
-  }
+  fetchChunk();
+  // for (int chunk = 0; chunk < (CNT + CHUNK_SIZE - 1) / CHUNK_SIZE; chunk++) {
+  //   fetchChunk(chunk);
+  // }
   saveArrayToFile();
 }
 
 void saveArrayToFile() {
-    File file = LittleFS.open("/array_data.bin", "w");
-    if (!file) {
-        Serial.println("Failed to open file for writing");
-        return;
-    }
+  File file = LittleFS.open("/array_data.bin", "w");
+  if (!file) {
+    Serial.println("Failed to open file for writing");
+    return;
+  }
 
-    for (int i = 0; i < CNT; ++i) {
-        for (int j = 0; j < 8; ++j) {
-            file.write((uint8_t *)&array[i][j], sizeof(unsigned int));
-        }
+  for (int i = 0; i < CNT; ++i) {
+    for (int j = 0; j < 8; ++j) {
+      file.write((uint8_t*)&array[i][j], sizeof(unsigned int));
     }
+  }
 
-    file.close();
-    Serial.println("Array data saved to file");
+  file.close();
+  Serial.println("Array data saved to file");
 }
 void loadArrayFromFile() {
-    File file = LittleFS.open("/array_data.bin", "r");
-    if (!file) {
-        Serial.println("Failed to open file for reading");
+  File file = LittleFS.open("/array_data.bin", "r");
+  if (!file) {
+    Serial.println("Failed to open file for reading");
+    return;
+  }
+
+  for (int i = 0; i < CNT; ++i) {
+    for (int j = 0; j < 8; ++j) {
+      if (file.available()) {
+        file.read((uint8_t*)&array[i][j], sizeof(unsigned int));
+      } else {
+        Serial.println("File does not contain enough data");
+        file.close();
         return;
+      }
     }
+  }
 
-    for (int i = 0; i < CNT; ++i) {
-        for (int j = 0; j < 8; ++j) {
-            if (file.available()) {
-                file.read((uint8_t *)&array[i][j], sizeof(unsigned int));
-            } else {
-                Serial.println("File does not contain enough data");
-                file.close();
-                return;
-            }
-        }
-    }
-
-    file.close();
-    Serial.println("Array data loaded from file");
+  file.close();
+  Serial.println("Array data loaded from file");
 }
 
 
 // Setup for Memory mode
 void setupMemoryMode() {
-      loadArrayFromFile();
+  loadArrayFromFile();
 }
 
 // Brightness calculation
@@ -617,7 +729,7 @@ void testmain() {
 void tryRcv() {
 }
 
-unsigned long currentTime = 0;
+int currentTime = 0;
 void mainProgram() {  // 照著光表亮
   Serial.println("enter main");
   while (1) {
@@ -632,13 +744,13 @@ void mainProgram() {  // 照著光表亮
         if (ii == -1) return;
         if (ii > 0) {
           // Serial.print(ii);
-          currentIndex = ii / 1000 * 20;
-          Serial.print("currentIndex: ");
-          Serial.println(currentIndex);
+          currentTime = ii / 1000 * 20;
+          Serial.print("currentTime: ");
+          Serial.println(currentTime);
           if (firstStart) {
             firstStart = false;
             startTime = millis();
-            offset = currentIndex;
+            offset = currentTime;
             Serial.print("offset: ");
             Serial.println(offset);
           }
@@ -650,14 +762,53 @@ void mainProgram() {  // 照著光表亮
         // Serial.print(millis() - startTime);
         // Serial.print(" ");
         // Serial.println((currentIndex - offset) * 50);
-        if (!firstStart and millis() - startTime >= (currentIndex - offset) * 50) {
+        if (!firstStart and millis() - startTime >= (currentTime - offset) * 50) {
+          Serial.print("currentIndex: ");
+          Serial.print(currentIndex);
+          Serial.print("  target value: ");
+          Serial.println(array[currentIndex][0]);
           // Serial.println("print");
-          for (int j = 0; j < LED_COUNT; j++) {
-            leds[j][0] = array[currentIndex][j + 1] >> 8;
-            //Serial.print(array[currentIndex][j + 1]);
-            leds[j][0].nscale8(calculateBrightness(array[currentIndex][j + 1]));
+          if (currentTime >= array[currentIndex][0]) {
+            Serial.println("bling");
+            for (int j = 0; j < 5; j++) {
+              leds[0][j] = array[currentIndex][1] >> 8;
+              //leds[0][j].nscale8(bright(array[currentIndex][1]));
+            }  //head
+            for (int j = 0; j < 4; j++) {
+              leds[1][j] = array[currentIndex][2] >> 8;
+              //leds[1][j].nscale8(bright(array[currentIndex][2]));
+            }  //shoulder
+            for (int j = 0; j < 4; j++) {
+              leds[2][j] = array[currentIndex][3] >> 8;
+              //leds[2][j].nscale8(bright(array[currentIndex][3]));
+            }  //chest
+            leds[2][4] = array[currentIndex][4] >> 8;
+            //leds[2][4].nscale8(bright(array[currentIndex][4]));  //arm
+            for (int j = 0; j < 4; j++) {
+              leds[3][j] = array[currentIndex][5] >> 8;
+              //leds[3][j].nscale8(bright(array[currentIndex][5]));
+            }  //waist, skirt
+            for (int j = 0; j < 4; j++) {
+              leds[4][j] = array[currentIndex][6] >> 8;
+              //leds[4][j].nscale8(bright(array[currentIndex][6]));
+            }
+            leds[4][4] = array[currentIndex][7] >> 8;
+            //leds[4][4].nscale8(bright(array[currentIndex][7]));  //arm
+            for (int j = 0; j < 3; j++) {
+              leds[5][j] = array[currentIndex][4] >> 8;
+              //leds[5][j].nscale8(bright(array[currentIndex][4]));
+            }  //front
+            // for (int j = 0; j < LED_COUNT; j++) {
+            //   leds[j][0] = array[currentIndex][j + 1] >> 8;
+            //   //Serial.print(array[currentIndex][j + 1]);
+            //   leds[j][0].nscale8(calculateBrightness(array[currentIndex][j + 1]));
+            // }
+            currentIndex++;
           }
-          currentIndex++;
+          currentTime++;
+          Serial.print("now value: ");
+          Serial.println(currentTime);
+
           FastLED.show();
         }
       }
@@ -674,6 +825,7 @@ void setup() {
   Wire.setSDA(SDA_PIN);
   Wire.setSCL(SCL_PIN);
   Wire.begin();
+
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -698,7 +850,7 @@ void setup() {
 
   delay(1000);
 
-  while (!Serial) {}
+  //while (!Serial) {}
   // 連接 WiFi
   connectToWiFi();
 
@@ -713,15 +865,15 @@ void setup() {
   if (tryToRcv) tryRcv();
 
   // Initialize LED
-  FastLED.addLeds<NEOPIXEL, 2>(leds[0], 1);
-  FastLED.addLeds<NEOPIXEL, 3>(leds[1], 1);
-  FastLED.addLeds<NEOPIXEL, 4>(leds[2], 1);
-  FastLED.addLeds<NEOPIXEL, 5>(leds[3], 1);
-  FastLED.addLeds<NEOPIXEL, 6>(leds[4], 1);
-  FastLED.addLeds<NEOPIXEL, 7>(leds[5], 1);
-  FastLED.addLeds<NEOPIXEL, 8>(leds[6], 1);
+  FastLED.addLeds<NEOPIXEL, 2>(leds[0], 5);
+  FastLED.addLeds<NEOPIXEL, 3>(leds[1], 4);
+  FastLED.addLeds<NEOPIXEL, 4>(leds[2], 5);
+  FastLED.addLeds<NEOPIXEL, 5>(leds[3], 4);
+  FastLED.addLeds<NEOPIXEL, 6>(leds[4], 5);
+  FastLED.addLeds<NEOPIXEL, 7>(leds[5], 3);
 
   FastLED.clear();
+  FastLED.setBrightness(255);
   FastLED.show();
 
   pinMode(SWITCH_PIN, INPUT_PULLUP);
@@ -763,6 +915,10 @@ void setup() {
   // 啟動 UDP 接收器
   udp.begin(localPort);
   Serial.printf("UDP listening on port %d\n", localPort);
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println("!!Ready!!");
+  display.display();
 }
 
 void loop() {
