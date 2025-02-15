@@ -8,8 +8,8 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-//#include <SPI.h>
 
+#define PLAYER_NUM 0
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
@@ -18,7 +18,7 @@
 #define SDA_PIN 12
 #define SCL_PIN 13
 
-String deviceId = "test01";  // 裝置名稱
+String deviceId = "player" + String(PLAYER_NUM);  // 裝置名稱
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -33,8 +33,8 @@ const char* ssid = "EE219B";          // wifi名稱
 const char* password = "wifiyee219";  // wifi密碼
 
 // API設定
-const char* serverUrl = "http://192.168.0.189:8000/api/bootcount";  // 請替換成你的API端點
-const char* testUrl = "http://192.168.0.189:8000/health";
+// const char* serverUrl = "http://192.168.0.189:8000/api/bootcount";  // 請替換成你的API端點
+// const char* testUrl = "http://192.168.0.189:8000/health";
 const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-15-14:50:50";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
 //const char* remoteUrl = "http://140.113.160.136:8000/timelist/";
 
@@ -156,7 +156,7 @@ void fetchChunk() {
     const char* id = doc["_id"];
     const char* user = doc["user"];
     const char* update_time = doc["update_time"];
-    JsonArray players = doc["players"][0];
+    JsonArray players = doc["players"][PLAYER_NUM];
 
     // for (int i = 0; i < CNT; i++) {
     //   array[i][0] = doc["players"][0][i]["time"].as<long>();
@@ -456,35 +456,35 @@ void onButton() {
 }
 
 // test get api
-void getCheck() {
-  if (WiFi.status() == WL_CONNECTED) {
-    WiFiClient client;
-    HTTPClient http;
+// void getCheck() {
+//   if (WiFi.status() == WL_CONNECTED) {
+//     WiFiClient client;
+//     HTTPClient http;
 
-    Serial.print("Connecting to server: ");
-    Serial.println(testUrl);
+//     Serial.print("Connecting to server: ");
+//     Serial.println(testUrl);
 
-    http.begin(client, testUrl);
-    //    http.addHeader("Accept", "application/json");
-    http.addHeader("Content-Type", "application/json");
-    int httpResponseCode = http.GET();
+//     http.begin(client, testUrl);
+//     //    http.addHeader("Accept", "application/json");
+//     http.addHeader("Content-Type", "application/json");
+//     int httpResponseCode = http.GET();
 
-    if (httpResponseCode == 200) {
-      Serial.println("GET request successful!");
-      String response = http.getString();
-      Serial.print("Response size: ");
-      Serial.println(http.getSize());
-      Serial.print("Response: ");
-      Serial.println(response);
+//     if (httpResponseCode == 200) {
+//       Serial.println("GET request successful!");
+//       String response = http.getString();
+//       Serial.print("Response size: ");
+//       Serial.println(http.getSize());
+//       Serial.print("Response: ");
+//       Serial.println(response);
 
-    } else {
-      Serial.print("GET request failed, error code: ");
-      Serial.println(httpResponseCode);
-    }
+//     } else {
+//       Serial.print("GET request failed, error code: ");
+//       Serial.println(httpResponseCode);
+//     }
 
-    http.end();
-  }
-}
+//     http.end();
+//   }
+// }
 
 void remoteCheck() {
   if (WiFi.status() == WL_CONNECTED) {
@@ -516,53 +516,53 @@ void remoteCheck() {
 }
 
 // 發送數據到伺服器的函數
-bool sendDataToServer(int bootCount) {
-  if (WiFi.status() == WL_CONNECTED) {
-    WiFiClient client;
-    HTTPClient http;
+// bool sendDataToServer(int bootCount) {
+//   if (WiFi.status() == WL_CONNECTED) {
+//     WiFiClient client;
+//     HTTPClient http;
 
-    Serial.print("Connecting to server: ");
-    Serial.println(serverUrl);
+//     Serial.print("Connecting to server: ");
+//     Serial.println(serverUrl);
 
-    // 開始連接
-    if (http.begin(client, serverUrl)) {
-      http.addHeader("Content-Type", "application/json");
+//     // 開始連接
+//     if (http.begin(client, serverUrl)) {
+//       http.addHeader("Content-Type", "application/json");
 
-      // 準備JSON數據
-      StaticJsonDocument<200> doc;  // 使用StaticJsonDocument來避免記憶體問題
-      doc["bootCount"] = bootCount;
-      doc["deviceId"] = deviceId;
+//       // 準備JSON數據
+//       StaticJsonDocument<200> doc;  // 使用StaticJsonDocument來避免記憶體問題
+//       doc["bootCount"] = bootCount;
+//       doc["deviceId"] = deviceId;
 
-      String jsonString;
-      serializeJson(doc, jsonString);
+//       String jsonString;
+//       serializeJson(doc, jsonString);
 
-      Serial.print("Sending data: ");
-      Serial.println(jsonString);
+//       Serial.print("Sending data: ");
+//       Serial.println(jsonString);
 
-      // 發送POST請求
-      int httpResponseCode = http.POST(jsonString);
+//       // 發送POST請求
+//       int httpResponseCode = http.POST(jsonString);
 
-      if (httpResponseCode > 0) {
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
-        http.end();
-        return true;
-      } else {
-        Serial.print("Error on sending POST: ");
-        Serial.println(httpResponseCode);
-        Serial.println(http.errorToString(httpResponseCode));
-        http.end();
-        return false;
-      }
-    } else {
-      Serial.println("Unable to connect to server");
-      return false;
-    }
-  } else {
-    Serial.println("Error in WiFi connection");
-    return false;
-  }
-}
+//       if (httpResponseCode > 0) {
+//         Serial.print("HTTP Response code: ");
+//         Serial.println(httpResponseCode);
+//         http.end();
+//         return true;
+//       } else {
+//         Serial.print("Error on sending POST: ");
+//         Serial.println(httpResponseCode);
+//         Serial.println(http.errorToString(httpResponseCode));
+//         http.end();
+//         return false;
+//       }
+//     } else {
+//       Serial.println("Unable to connect to server");
+//       return false;
+//     }
+//   } else {
+//     Serial.println("Error in WiFi connection");
+//     return false;
+//   }
+// }
 
 void checkHTTP() {
   // 處理 HTTP 請求
@@ -682,60 +682,60 @@ void handleCommand(String command) {
   }
 }
 
-void testmain() {
-  // 新增：接收 UDP 廣播訊息
-  char incomingPacket[255];  // 用於存儲接收的廣播消息
-  int packetSize = udp.parsePacket();
-  if (packetSize) {
-    int len = udp.read(incomingPacket, 255);
-    incomingPacket[len] = 0;  // 確保字串以 '\0' 結尾
-    String command = String(incomingPacket);
-    if (command != "heartbeat") Serial.printf("Received UDP packet: %s\n", command.c_str());
-    handleCommand(command);  // 處理接收到的指令
-  }
-  int bootCount = 0;
-  File file = LittleFS.open("/bootCount.json", "r");
-  if (file) {
-    StaticJsonDocument<200> doc;  // 使用StaticJsonDocument來避免記憶體問題
-    DeserializationError error = deserializeJson(doc, file);
-    file.close();
+// void testmain() {
+//   // 新增：接收 UDP 廣播訊息
+//   char incomingPacket[255];  // 用於存儲接收的廣播消息
+//   int packetSize = udp.parsePacket();
+//   if (packetSize) {
+//     int len = udp.read(incomingPacket, 255);
+//     incomingPacket[len] = 0;  // 確保字串以 '\0' 結尾
+//     String command = String(incomingPacket);
+//     if (command != "heartbeat") Serial.printf("Received UDP packet: %s\n", command.c_str());
+//     handleCommand(command);  // 處理接收到的指令
+//   }
+//   int bootCount = 0;
+//   File file = LittleFS.open("/bootCount.json", "r");
+//   if (file) {
+//     StaticJsonDocument<200> doc;  // 使用StaticJsonDocument來避免記憶體問題
+//     DeserializationError error = deserializeJson(doc, file);
+//     file.close();
 
-    if (!error) {
-      bootCount = doc["bootCount"] | 0;
-      Serial.printf("Boot count read from file: %d\n", bootCount);
-    } else {
-      Serial.println("Failed to parse JSON, starting with bootCount = 0");
-    }
-  } else {
-    Serial.println("File not found, creating new one with bootCount = 0");
-  }
+//     if (!error) {
+//       bootCount = doc["bootCount"] | 0;
+//       Serial.printf("Boot count read from file: %d\n", bootCount);
+//     } else {
+//       Serial.println("Failed to parse JSON, starting with bootCount = 0");
+//     }
+//   } else {
+//     Serial.println("File not found, creating new one with bootCount = 0");
+//   }
 
-  // 增加開機次數並更新 JSON 數據
-  bootCount++;
-  StaticJsonDocument<200> doc;
-  doc["bootCount"] = bootCount;
+//   // 增加開機次數並更新 JSON 數據
+//   bootCount++;
+//   StaticJsonDocument<200> doc;
+//   doc["bootCount"] = bootCount;
 
-  // 打開檔案以寫入新的 JSON 數據
-  file = LittleFS.open("/bootCount.json", "w");
-  if (file) {
-    serializeJson(doc, file);
-    file.close();
-    Serial.printf("Updated boot count: %d\n", bootCount);
+//   // 打開檔案以寫入新的 JSON 數據
+//   file = LittleFS.open("/bootCount.json", "w");
+//   if (file) {
+//     serializeJson(doc, file);
+//     file.close();
+//     Serial.printf("Updated boot count: %d\n", bootCount);
 
-    // 嘗試發送數據到伺服器，如果失敗則重試
-    int retryCount = 0;
-    while (!sendDataToServer(bootCount) && retryCount < 3) {
-      Serial.println("Retrying...");
-      delay(1000);
-      retryCount++;
-    }
-  } else {
-    Serial.println("Failed to open file for writing");
-  }
-}
+//     // 嘗試發送數據到伺服器，如果失敗則重試
+//     int retryCount = 0;
+//     while (!sendDataToServer(bootCount) && retryCount < 3) {
+//       Serial.println("Retrying...");
+//       delay(1000);
+//       retryCount++;
+//     }
+//   } else {
+//     Serial.println("Failed to open file for writing");
+//   }
+// }
 
-void tryRcv() {
-}
+// void tryRcv() {
+// }
 
 int currentTime = 0;
 void mainProgram() {  // 照著光表亮
@@ -752,7 +752,7 @@ void mainProgram() {  // 照著光表亮
         if (ii == -1) return;
         if (ii > 0) {
           // Serial.print(ii);
-          currentTime = ii / 1000 * 20;
+          currentTime = ii / 50;
           Serial.print("currentTime: ");
           Serial.println(currentTime);
           if (firstStart) {
@@ -777,11 +777,11 @@ void mainProgram() {  // 照著光表亮
           Serial.println(array[currentIndex][0]);
           // Serial.println("print");
           if (currentTime >= array[currentIndex][0]) {
-            Serial.println("bling");
+            // Serial.println("bling");
             for (int i = 0; i < 8; i++) {
               for (int j = 0; j < sectionSizes[i]; j++) {
                 leds[sectionRows[i]][j] = array[currentIndex][sectionIndices[i]] >> 8;
-                //leds[sectionRows[i]][j].nscale8(bright(array[currentIndex][sectionIndices[i]]));
+                leds[sectionRows[i]][j].nscale8(calculateBrightness(array[currentIndex][sectionIndices[i]]));
               }
             }
             // for (int j = 0; j < 5; j++) {
@@ -876,7 +876,7 @@ void setup() {
   // 啟動 HTTP 伺服器
   server.begin();
 
-  if (tryToRcv) tryRcv();
+  // if (tryToRcv) tryRcv();
 
   // Initialize LED
   FastLED.addLeds<NEOPIXEL, 2>(leds[0], 5);
@@ -936,7 +936,7 @@ void setup() {
 }
 
 void loop() {
-  checkHTTP();
+  // checkHTTP();
   if (checkUDP_number() > 0) {
     ON = 1;
     startMainProgram = 1;
