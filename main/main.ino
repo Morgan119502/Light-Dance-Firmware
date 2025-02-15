@@ -62,7 +62,8 @@ CRGB led3[5];  //胸、手
 CRGB led4[4];  //腰、裙
 CRGB led5[5];  //腿
 CRGB led6[3];  //前
-const int sectionSizes[] = { 5, 4, 4, 1, 4, 4, 1, 3 };
+const int sectionSizes[] = { 5, 4, 4, 5, 4, 4, 5, 3 };
+int sectionStart[] = { 0, 0, 0, 4, 0, 0, 4, 0 };
 const int sectionIndices[] = { 1, 2, 3, 4, 5, 6, 7, 4 };
 const int sectionRows[] = { 0, 1, 2, 2, 3, 4, 4, 5 };
 
@@ -97,9 +98,9 @@ void connectToWiFi() {
   display.clearDisplay();
   display.setCursor(0, 0);
   display.println("WiFi Connected");
-  display.setCursor(0, 16);
-  display.print("IP: ");
-  display.println(WiFi.localIP());
+  // display.setCursor(0, 16);
+  // display.print("IP: ");
+  // display.println(WiFi.localIP());
   display.display();
 
   return;
@@ -442,22 +443,26 @@ void setupMemoryMode() {
 
 // Brightness calculation
 int calculateBrightness(unsigned int data) {
-  Serial.print("data: ");
-  Serial.println(data);
-  Serial.print("   data%256: ");
-  Serial.println(data%256);
-  return ((data % 256)*255)/100;
+  // Serial.print("data: ");
+  // Serial.println(data);
+  // Serial.print("   data%256: ");
+  // Serial.println(data%256);
+  return ((data % 256) * 255) / 100;
   // return (data >> 0) & 0xFF;
 }
 
 void onButton() {
-  ON = !ON;
-  startMainProgram = !startMainProgram;
-  Serial.println(ON);
-  if (ON) {
-    startTime = millis();
-    currentIndex = 0;  //按了按鈕後是要從頭開始還是接著
-  }
+  ON = true;
+  startMainProgram = 1;
+  firstStart = 1;
+  Serial.print("startmain: ");
+  Serial.println(startMainProgram);
+
+  // Serial.println(ON);
+  // if (ON) {
+  //   startTime = millis();
+  //   currentIndex = 0;  //按了按鈕後是要從頭開始還是接著
+  // }
 }
 
 // test get api
@@ -747,6 +752,7 @@ void mainProgram() {  // 照著光表亮
   Serial.println("enter main");
   while (1) {
     Serial.println("enter loop");
+    // if (ON) {
     if (ON) {
       Serial.println("on");
       startTime = millis();
@@ -784,44 +790,43 @@ void mainProgram() {  // 照著光表亮
           if (currentTime >= array[currentIndex][0]) {
             // Serial.println("bling");
             for (int i = 0; i < 8; i++) {
-              for (int j = 0; j < sectionSizes[i]; j++) {
+              for (int j = sectionStart[i]; j < sectionSizes[i]; j++) {
                 leds[sectionRows[i]][j] = array[currentIndex][sectionIndices[i]] >> 8;
-
                 leds[sectionRows[i]][j].nscale8(calculateBrightness(array[currentIndex][sectionIndices[i]]));
               }
             }
-            Serial.print("head_data: ");
-            Serial.println(array[currentIndex][1]);
-            Serial.print("head_bright: ");
-            Serial.println(calculateBrightness(array[currentIndex][1]));
+            // Serial.print("head_data: ");
+            // Serial.println(array[currentIndex][1]);
+            // Serial.print("head_bright: ");
+            // Serial.println(calculateBrightness(array[currentIndex][1]));
 
             // for (int j = 0; j < 5; j++) {
             //   leds[0][j] = array[currentIndex][1] >> 8;
-            //   //leds[0][j].nscale8(bright(array[currentIndex][1]));
+            //   leds[0][j].nscale8(calculateBrightness(array[currentIndex][1]));
             // }  //head
             // for (int j = 0; j < 4; j++) {
             //   leds[1][j] = array[currentIndex][2] >> 8;
-            //   //leds[1][j].nscale8(bright(array[currentIndex][2]));
+            //   leds[1][j].nscale8(calculateBrightness(array[currentIndex][2]));
             // }  //shoulder
             // for (int j = 0; j < 4; j++) {
             //   leds[2][j] = array[currentIndex][3] >> 8;
-            //   //leds[2][j].nscale8(bright(array[currentIndex][3]));
+            //   leds[2][j].nscale8(calculateBrightness(array[currentIndex][3]));
             // }  //chest
             // leds[2][4] = array[currentIndex][4] >> 8;
-            // //leds[2][4].nscale8(bright(array[currentIndex][4]));  //arm
+            // leds[2][4].nscale8(calculateBrightness(array[currentIndex][4]));  //arm
             // for (int j = 0; j < 4; j++) {
             //   leds[3][j] = array[currentIndex][5] >> 8;
-            //   //leds[3][j].nscale8(bright(array[currentIndex][5]));
+            //   leds[3][j].nscale8(calculateBrightness(array[currentIndex][5]));
             // }  //waist, skirt
             // for (int j = 0; j < 4; j++) {
             //   leds[4][j] = array[currentIndex][6] >> 8;
-            //   //leds[4][j].nscale8(bright(array[currentIndex][6]));
+            //   leds[4][j].nscale8(calculateBrightness(array[currentIndex][6]));
             // }
             // leds[4][4] = array[currentIndex][7] >> 8;
-            // //leds[4][4].nscale8(bright(array[currentIndex][7]));  //arm
+            // leds[4][4].nscale8(calculateBrightness(array[currentIndex][7]));  //arm
             // for (int j = 0; j < 3; j++) {
             //   leds[5][j] = array[currentIndex][4] >> 8;
-            //   //leds[5][j].nscale8(bright(array[currentIndex][4]));
+            //   leds[5][j].nscale8(calculateBrightness(array[currentIndex][4]));
             // }  //front
             // for (int j = 0; j < LED_COUNT; j++) {
             //   leds[j][0] = array[currentIndex][j + 1] >> 8;
@@ -842,9 +847,6 @@ void mainProgram() {  // 照著光表亮
   Serial.println("out main");
 }
 
-int bright(unsigned int data) {
-  return (data >> 0) & 0xFF;
-}
 
 void setup() {
   Wire.setSDA(SDA_PIN);
@@ -904,8 +906,8 @@ void setup() {
   pinMode(SWITCH_PIN, INPUT_PULLUP);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  // btn1.begin();
-  // btn1.onPressed(onButton);
+  btn1.begin();
+  btn1.onPressed(onButton);
 
   //Serial setting
   Serial.println("Starting setup...");
@@ -932,9 +934,13 @@ void setup() {
   if (wifiMode) {
     Serial.println("Wi-Fi Mode");
     setupWiFiMode();
+    display.println("\nWifi Mode");
+    display.display();
   } else {
     Serial.println("Memory Mode");
     setupMemoryMode();
+    display.println("\Memory Mode");
+    display.display();
   }
 
   Serial.println("Setup Finished OuOb");
@@ -944,8 +950,8 @@ void setup() {
   udp.begin(localPort);
   Serial.printf("UDP listening on port %d\n", localPort);
   // display.clearDisplay();
-  display.setCursor(0, 24);
-  display.println("!!Ready!!");
+  display.setTextSize(2);
+  display.println("\n!!Ready!!");
   display.display();
 }
 
@@ -961,6 +967,7 @@ void loop() {
   if (startMainProgram) {
     // 主程式邏輯
     mainProgram();
+    btn1.read();
     // testmain();
     // remoteCheck();
   }
