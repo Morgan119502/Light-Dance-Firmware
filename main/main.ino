@@ -18,7 +18,7 @@
 #define SDA_PIN 12
 #define SCL_PIN 13
 
-String deviceId = "test02";  // 裝置名稱
+String deviceId = "test01";  // 裝置名稱
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -35,7 +35,7 @@ const char* password = "wifiyee219";  // wifi密碼
 // API設定
 const char* serverUrl = "http://192.168.0.189:8000/api/bootcount";  // 請替換成你的API端點
 const char* testUrl = "http://192.168.0.189:8000/health";
-const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-22:37:21";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
+const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-15-14:50:50";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
 //const char* remoteUrl = "http://140.113.160.136:8000/timelist/";
 
 // 全域變數
@@ -107,8 +107,8 @@ void connectToWiFi() {
 void fetchChunk() {
   HTTPClient http;
   //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
-  String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-22:37:21";
-  http.begin(apiUrl);
+  // String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-22:37:21";
+  http.begin(remoteUrl);
   int httpResponseCode = http.GET();
 
   if (httpResponseCode > 0) {
@@ -185,6 +185,9 @@ void fetchChunk() {
     // }
 
     num_data = players.size();
+    Serial.print("num_data: ");
+    Serial.println(num_data);
+
     for (int i = 0; i < num_data && i < CNT; i++) {
       JsonObject player = players[i];
 
