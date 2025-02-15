@@ -35,7 +35,7 @@ const char* password = "wifiyee219";  // wifi密碼
 // API設定
 // const char* serverUrl = "http://192.168.0.189:8000/api/bootcount";  // 請替換成你的API端點
 // const char* testUrl = "http://192.168.0.189:8000/health";
-const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-15-16:45:07";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
+const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/LATEST";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
 //const char* remoteUrl = "http://140.113.160.136:8000/timelist/";
 
 // 全域變數
@@ -442,7 +442,12 @@ void setupMemoryMode() {
 
 // Brightness calculation
 int calculateBrightness(unsigned int data) {
-  return (data >> 0) & 0xFF;
+  Serial.print("data: ");
+  Serial.println(data);
+  Serial.print("   data%256: ");
+  Serial.println(data%256);
+  return ((data % 256)*255)/100;
+  // return (data >> 0) & 0xFF;
 }
 
 void onButton() {
@@ -781,9 +786,15 @@ void mainProgram() {  // 照著光表亮
             for (int i = 0; i < 8; i++) {
               for (int j = 0; j < sectionSizes[i]; j++) {
                 leds[sectionRows[i]][j] = array[currentIndex][sectionIndices[i]] >> 8;
+
                 leds[sectionRows[i]][j].nscale8(calculateBrightness(array[currentIndex][sectionIndices[i]]));
               }
             }
+            Serial.print("head_data: ");
+            Serial.println(array[currentIndex][1]);
+            Serial.print("head_bright: ");
+            Serial.println(calculateBrightness(array[currentIndex][1]));
+
             // for (int j = 0; j < 5; j++) {
             //   leds[0][j] = array[currentIndex][1] >> 8;
             //   //leds[0][j].nscale8(bright(array[currentIndex][1]));
@@ -893,8 +904,8 @@ void setup() {
   pinMode(SWITCH_PIN, INPUT_PULLUP);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  btn1.begin();
-  btn1.onPressed(onButton);
+  // btn1.begin();
+  // btn1.onPressed(onButton);
 
   //Serial setting
   Serial.println("Starting setup...");
@@ -932,8 +943,8 @@ void setup() {
   // 啟動 UDP 接收器
   udp.begin(localPort);
   Serial.printf("UDP listening on port %d\n", localPort);
-  display.clearDisplay();
-  display.setCursor(0, 0);
+  // display.clearDisplay();
+  display.setCursor(0, 24);
   display.println("!!Ready!!");
   display.display();
 }
