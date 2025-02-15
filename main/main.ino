@@ -35,7 +35,7 @@ const char* password = "wifiyee219";  // wifi密碼
 // API設定
 // const char* serverUrl = "http://192.168.0.189:8000/api/bootcount";  // 請替換成你的API端點
 // const char* testUrl = "http://192.168.0.189:8000/health";
-const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-15-14:50:50";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
+const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-15-16:45:07";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
 //const char* remoteUrl = "http://140.113.160.136:8000/timelist/";
 
 // 全域變數
@@ -892,6 +892,9 @@ void setup() {
 
   pinMode(SWITCH_PIN, INPUT_PULLUP);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  btn1.begin();
+  btn1.onPressed(onButton);
 
   //Serial setting
   Serial.println("Starting setup...");
