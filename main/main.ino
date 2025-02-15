@@ -18,7 +18,7 @@
 #define SDA_PIN 12
 #define SCL_PIN 13
 
-String deviceId = "test02";     // 裝置名稱
+String deviceId = "test02";  // 裝置名稱
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -62,6 +62,9 @@ CRGB led3[5];  //胸、手
 CRGB led4[4];  //腰、裙
 CRGB led5[5];  //腿
 CRGB led6[3];  //前
+const int sectionSizes[] = { 5, 4, 4, 1, 4, 4, 1, 3 };
+const int sectionIndices[] = { 1, 2, 3, 4, 5, 6, 7, 4 };
+const int sectionRows[] = { 0, 1, 2, 2, 3, 4, 4, 5 };
 
 unsigned int array[CNT][8];
 EasyButton btn1(BUTTON_PIN, 100, true);
@@ -772,34 +775,40 @@ void mainProgram() {  // 照著光表亮
           // Serial.println("print");
           if (currentTime >= array[currentIndex][0]) {
             Serial.println("bling");
-            for (int j = 0; j < 5; j++) {
-              leds[0][j] = array[currentIndex][1] >> 8;
-              //leds[0][j].nscale8(bright(array[currentIndex][1]));
-            }  //head
-            for (int j = 0; j < 4; j++) {
-              leds[1][j] = array[currentIndex][2] >> 8;
-              //leds[1][j].nscale8(bright(array[currentIndex][2]));
-            }  //shoulder
-            for (int j = 0; j < 4; j++) {
-              leds[2][j] = array[currentIndex][3] >> 8;
-              //leds[2][j].nscale8(bright(array[currentIndex][3]));
-            }  //chest
-            leds[2][4] = array[currentIndex][4] >> 8;
-            //leds[2][4].nscale8(bright(array[currentIndex][4]));  //arm
-            for (int j = 0; j < 4; j++) {
-              leds[3][j] = array[currentIndex][5] >> 8;
-              //leds[3][j].nscale8(bright(array[currentIndex][5]));
-            }  //waist, skirt
-            for (int j = 0; j < 4; j++) {
-              leds[4][j] = array[currentIndex][6] >> 8;
-              //leds[4][j].nscale8(bright(array[currentIndex][6]));
+            for (int i = 0; i < 8; i++) {
+              for (int j = 0; j < sectionSizes[i]; j++) {
+                leds[sectionRows[i]][j] = array[currentIndex][sectionIndices[i]] >> 8;
+                //leds[sectionRows[i]][j].nscale8(bright(array[currentIndex][sectionIndices[i]]));
+              }
             }
-            leds[4][4] = array[currentIndex][7] >> 8;
-            //leds[4][4].nscale8(bright(array[currentIndex][7]));  //arm
-            for (int j = 0; j < 3; j++) {
-              leds[5][j] = array[currentIndex][4] >> 8;
-              //leds[5][j].nscale8(bright(array[currentIndex][4]));
-            }  //front
+            // for (int j = 0; j < 5; j++) {
+            //   leds[0][j] = array[currentIndex][1] >> 8;
+            //   //leds[0][j].nscale8(bright(array[currentIndex][1]));
+            // }  //head
+            // for (int j = 0; j < 4; j++) {
+            //   leds[1][j] = array[currentIndex][2] >> 8;
+            //   //leds[1][j].nscale8(bright(array[currentIndex][2]));
+            // }  //shoulder
+            // for (int j = 0; j < 4; j++) {
+            //   leds[2][j] = array[currentIndex][3] >> 8;
+            //   //leds[2][j].nscale8(bright(array[currentIndex][3]));
+            // }  //chest
+            // leds[2][4] = array[currentIndex][4] >> 8;
+            // //leds[2][4].nscale8(bright(array[currentIndex][4]));  //arm
+            // for (int j = 0; j < 4; j++) {
+            //   leds[3][j] = array[currentIndex][5] >> 8;
+            //   //leds[3][j].nscale8(bright(array[currentIndex][5]));
+            // }  //waist, skirt
+            // for (int j = 0; j < 4; j++) {
+            //   leds[4][j] = array[currentIndex][6] >> 8;
+            //   //leds[4][j].nscale8(bright(array[currentIndex][6]));
+            // }
+            // leds[4][4] = array[currentIndex][7] >> 8;
+            // //leds[4][4].nscale8(bright(array[currentIndex][7]));  //arm
+            // for (int j = 0; j < 3; j++) {
+            //   leds[5][j] = array[currentIndex][4] >> 8;
+            //   //leds[5][j].nscale8(bright(array[currentIndex][4]));
+            // }  //front
             // for (int j = 0; j < LED_COUNT; j++) {
             //   leds[j][0] = array[currentIndex][j + 1] >> 8;
             //   //Serial.print(array[currentIndex][j + 1]);
