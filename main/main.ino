@@ -62,7 +62,8 @@ CRGB led3[5];  //胸、手
 CRGB led4[4];  //腰、裙
 CRGB led5[5];  //腿
 CRGB led6[3];  //前
-const int sectionSizes[] = { 5, 4, 4, 1, 4, 4, 1, 3 };
+const int sectionSizes[] = { 5, 4, 4, 5, 4, 4, 5, 3 };
+int sectionStart[] = { 0, 0, 0, 4, 0, 0, 4, 0 };
 const int sectionIndices[] = { 1, 2, 3, 4, 5, 6, 7, 4 };
 const int sectionRows[] = { 0, 1, 2, 2, 3, 4, 4, 5 };
 
@@ -451,7 +452,7 @@ int calculateBrightness(unsigned int data) {
 }
 
 void onButton() {
-  // ON = !ON;
+  ON = true;
   startMainProgram = 1;
   firstStart = 1;
   Serial.print("startmain: ");
@@ -789,9 +790,8 @@ void mainProgram() {  // 照著光表亮
           if (currentTime >= array[currentIndex][0]) {
             // Serial.println("bling");
             for (int i = 0; i < 8; i++) {
-              for (int j = 0; j < sectionSizes[i]; j++) {
+              for (int j = sectionStart[i]; j < sectionSizes[i]; j++) {
                 leds[sectionRows[i]][j] = array[currentIndex][sectionIndices[i]] >> 8;
-
                 leds[sectionRows[i]][j].nscale8(calculateBrightness(array[currentIndex][sectionIndices[i]]));
               }
             }
@@ -802,31 +802,31 @@ void mainProgram() {  // 照著光表亮
 
             // for (int j = 0; j < 5; j++) {
             //   leds[0][j] = array[currentIndex][1] >> 8;
-            //   //leds[0][j].nscale8(bright(array[currentIndex][1]));
+            //   leds[0][j].nscale8(calculateBrightness(array[currentIndex][1]));
             // }  //head
             // for (int j = 0; j < 4; j++) {
             //   leds[1][j] = array[currentIndex][2] >> 8;
-            //   //leds[1][j].nscale8(bright(array[currentIndex][2]));
+            //   leds[1][j].nscale8(calculateBrightness(array[currentIndex][2]));
             // }  //shoulder
             // for (int j = 0; j < 4; j++) {
             //   leds[2][j] = array[currentIndex][3] >> 8;
-            //   //leds[2][j].nscale8(bright(array[currentIndex][3]));
+            //   leds[2][j].nscale8(calculateBrightness(array[currentIndex][3]));
             // }  //chest
             // leds[2][4] = array[currentIndex][4] >> 8;
-            // //leds[2][4].nscale8(bright(array[currentIndex][4]));  //arm
+            // leds[2][4].nscale8(calculateBrightness(array[currentIndex][4]));  //arm
             // for (int j = 0; j < 4; j++) {
             //   leds[3][j] = array[currentIndex][5] >> 8;
-            //   //leds[3][j].nscale8(bright(array[currentIndex][5]));
+            //   leds[3][j].nscale8(calculateBrightness(array[currentIndex][5]));
             // }  //waist, skirt
             // for (int j = 0; j < 4; j++) {
             //   leds[4][j] = array[currentIndex][6] >> 8;
-            //   //leds[4][j].nscale8(bright(array[currentIndex][6]));
+            //   leds[4][j].nscale8(calculateBrightness(array[currentIndex][6]));
             // }
             // leds[4][4] = array[currentIndex][7] >> 8;
-            // //leds[4][4].nscale8(bright(array[currentIndex][7]));  //arm
+            // leds[4][4].nscale8(calculateBrightness(array[currentIndex][7]));  //arm
             // for (int j = 0; j < 3; j++) {
             //   leds[5][j] = array[currentIndex][4] >> 8;
-            //   //leds[5][j].nscale8(bright(array[currentIndex][4]));
+            //   leds[5][j].nscale8(calculateBrightness(array[currentIndex][4]));
             // }  //front
             // for (int j = 0; j < LED_COUNT; j++) {
             //   leds[j][0] = array[currentIndex][j + 1] >> 8;
