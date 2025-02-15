@@ -111,7 +111,7 @@ def stop_music():
 
 # 發送停止訊號，直到所有設備回應
 def start_function():
-    start_music()
+    start_music() 
     time.sleep(0.5)  # 延遲調整
     broadcast_message("start")
     global isRunning
