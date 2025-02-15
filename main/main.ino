@@ -18,6 +18,8 @@
 #define SDA_PIN 12
 #define SCL_PIN 13
 
+String deviceId = "test02";     // 裝置名稱
+
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 WiFiUDP udp;  // 建立 UDP 對象
@@ -41,10 +43,10 @@ WiFiServer server(80);          // 設置 HTTP 伺服器埠
 bool startMainProgram = false;  // 主程式啟動開關
 bool running = false;           // 模擬任務執行狀態
 bool tryToRcv = true;           // 是否嘗試接收檔案
-String deviceId = "test02";     // 裝置名稱
 bool firstStart = true;
 int offset = 0;
 int num_data;
+
 // LED腳位設定
 #define SWITCH_PIN 17
 #define BUTTON_PIN 16
