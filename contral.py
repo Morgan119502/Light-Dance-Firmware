@@ -96,8 +96,23 @@ lastTime = 0
 isRunning = False
 heartbeatTrig = True
 
+def start_music():
+    music_file = r"C:\Users\User\Desktop\fixed_audio.mp3"  # 替換為你的音樂檔案路徑
+    # time.sleep(3)  # 音樂出現的延遲
+    play_music(music_file)
+
+def play_music(file_path):
+    pygame.mixer.init()
+    pygame.mixer.music.load(file_path)
+    pygame.mixer.music.play()
+
+def stop_music():
+    pygame.mixer.music.stop()
+
 # 發送停止訊號，直到所有設備回應
 def start_function():
+    start_music()
+    time.sleep(0.5)  # 延遲調整
     broadcast_message("start")
     global isRunning
     global rootTime
@@ -113,6 +128,8 @@ def start_function():
     for button in buttons:
         if button.text == "Start":
             button.enabled = False
+
+    # time.sleep(3)     #延遲調整
 
     # start_event.set()  # 啟動停止功能
 
@@ -150,6 +167,9 @@ def stop_function():
     for button in buttons:
         if button.text == "Start":
             button.enabled = True
+
+    stop_music()
+
 
     # def broadcast_stop():
     #     while stop_event.is_set():
