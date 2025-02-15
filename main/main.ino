@@ -97,9 +97,9 @@ void connectToWiFi() {
   display.clearDisplay();
   display.setCursor(0, 0);
   display.println("WiFi Connected");
-  display.setCursor(0, 16);
-  display.print("IP: ");
-  display.println(WiFi.localIP());
+  // display.setCursor(0, 16);
+  // display.print("IP: ");
+  // display.println(WiFi.localIP());
   display.display();
 
   return;
@@ -442,22 +442,26 @@ void setupMemoryMode() {
 
 // Brightness calculation
 int calculateBrightness(unsigned int data) {
-  Serial.print("data: ");
-  Serial.println(data);
-  Serial.print("   data%256: ");
-  Serial.println(data%256);
-  return ((data % 256)*255)/100;
+  // Serial.print("data: ");
+  // Serial.println(data);
+  // Serial.print("   data%256: ");
+  // Serial.println(data%256);
+  return ((data % 256) * 255) / 100;
   // return (data >> 0) & 0xFF;
 }
 
 void onButton() {
-  ON = !ON;
-  startMainProgram = !startMainProgram;
-  Serial.println(ON);
-  if (ON) {
-    startTime = millis();
-    currentIndex = 0;  //按了按鈕後是要從頭開始還是接著
-  }
+  // ON = !ON;
+  startMainProgram = 1;
+  firstStart = 1;
+  Serial.print("startmain: ");
+  Serial.println(startMainProgram);
+
+  // Serial.println(ON);
+  // if (ON) {
+  //   startTime = millis();
+  //   currentIndex = 0;  //按了按鈕後是要從頭開始還是接著
+  // }
 }
 
 // test get api
@@ -747,6 +751,7 @@ void mainProgram() {  // 照著光表亮
   Serial.println("enter main");
   while (1) {
     Serial.println("enter loop");
+    // if (ON) {
     if (ON) {
       Serial.println("on");
       startTime = millis();
@@ -790,10 +795,10 @@ void mainProgram() {  // 照著光表亮
                 leds[sectionRows[i]][j].nscale8(calculateBrightness(array[currentIndex][sectionIndices[i]]));
               }
             }
-            Serial.print("head_data: ");
-            Serial.println(array[currentIndex][1]);
-            Serial.print("head_bright: ");
-            Serial.println(calculateBrightness(array[currentIndex][1]));
+            // Serial.print("head_data: ");
+            // Serial.println(array[currentIndex][1]);
+            // Serial.print("head_bright: ");
+            // Serial.println(calculateBrightness(array[currentIndex][1]));
 
             // for (int j = 0; j < 5; j++) {
             //   leds[0][j] = array[currentIndex][1] >> 8;
@@ -842,9 +847,6 @@ void mainProgram() {  // 照著光表亮
   Serial.println("out main");
 }
 
-int bright(unsigned int data) {
-  return (data >> 0) & 0xFF;
-}
 
 void setup() {
   Wire.setSDA(SDA_PIN);
@@ -904,8 +906,8 @@ void setup() {
   pinMode(SWITCH_PIN, INPUT_PULLUP);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  // btn1.begin();
-  // btn1.onPressed(onButton);
+  btn1.begin();
+  btn1.onPressed(onButton);
 
   //Serial setting
   Serial.println("Starting setup...");
@@ -932,9 +934,13 @@ void setup() {
   if (wifiMode) {
     Serial.println("Wi-Fi Mode");
     setupWiFiMode();
+    display.println("\nWifi Mode");
+    display.display();
   } else {
     Serial.println("Memory Mode");
     setupMemoryMode();
+    display.println("\Memory Mode");
+    display.display();
   }
 
   Serial.println("Setup Finished OuOb");
@@ -944,8 +950,8 @@ void setup() {
   udp.begin(localPort);
   Serial.printf("UDP listening on port %d\n", localPort);
   // display.clearDisplay();
-  display.setCursor(0, 24);
-  display.println("!!Ready!!");
+  display.setTextSize(2);
+  display.println("\n!!Ready!!");
   display.display();
 }
 
@@ -961,6 +967,7 @@ void loop() {
   if (startMainProgram) {
     // 主程式邏輯
     mainProgram();
+    btn1.read();
     // testmain();
     // remoteCheck();
   }
