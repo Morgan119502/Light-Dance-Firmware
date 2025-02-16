@@ -33,10 +33,7 @@ const char* ssid = "EE219B";          // wifi名稱
 const char* password = "wifiyee219";  // wifi密碼
 
 // API設定
-// const char* serverUrl = "http://192.168.0.189:8000/api/bootcount";  // 請替換成你的API端點
-// const char* testUrl = "http://192.168.0.189:8000/health";
 const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/LATEST";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
-//const char* remoteUrl = "http://140.113.160.136:8000/timelist/";
 
 // 全域變數
 WiFiServer server(80);          // 設置 HTTP 伺服器埠
@@ -78,7 +75,7 @@ bool wifiMode = false;
 int currentIndex = 0;
 String memoryData;
 
-// wifi連線
+// Check wifi connection
 void connectToWiFi() {
   display.clearDisplay();
   display.setCursor(0, 0);
@@ -105,6 +102,7 @@ void connectToWiFi() {
 
   return;
 }
+
 void fetchChunk() {
   HTTPClient http;
   //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
@@ -396,6 +394,7 @@ void setupWiFiMode() {
   saveArrayToFile();
 }
 
+// Save data to pico memory
 void saveArrayToFile() {
   File file = LittleFS.open("/array_data.bin", "w");
   if (!file) {
@@ -412,6 +411,8 @@ void saveArrayToFile() {
   file.close();
   Serial.println("Array data saved to file");
 }
+
+// Read data from pico memory
 void loadArrayFromFile() {
   File file = LittleFS.open("/array_data.bin", "r");
   if (!file) {
@@ -435,7 +436,6 @@ void loadArrayFromFile() {
   Serial.println("Array data loaded from file");
 }
 
-
 // Setup for Memory mode
 void setupMemoryMode() {
   loadArrayFromFile();
@@ -451,6 +451,7 @@ int calculateBrightness(unsigned int data) {
   // return (data >> 0) & 0xFF;
 }
 
+// Setup when btn1 pressed 
 void onButton() {
   ON = true;
   startMainProgram = 1;
@@ -470,15 +471,12 @@ void onButton() {
 //   if (WiFi.status() == WL_CONNECTED) {
 //     WiFiClient client;
 //     HTTPClient http;
-
 //     Serial.print("Connecting to server: ");
 //     Serial.println(testUrl);
-
 //     http.begin(client, testUrl);
 //     //    http.addHeader("Accept", "application/json");
 //     http.addHeader("Content-Type", "application/json");
 //     int httpResponseCode = http.GET();
-
 //     if (httpResponseCode == 200) {
 //       Serial.println("GET request successful!");
 //       String response = http.getString();
@@ -486,12 +484,10 @@ void onButton() {
 //       Serial.println(http.getSize());
 //       Serial.print("Response: ");
 //       Serial.println(response);
-
 //     } else {
 //       Serial.print("GET request failed, error code: ");
 //       Serial.println(httpResponseCode);
 //     }
-
 //     http.end();
 //   }
 // }
@@ -530,28 +526,21 @@ void remoteCheck() {
 //   if (WiFi.status() == WL_CONNECTED) {
 //     WiFiClient client;
 //     HTTPClient http;
-
 //     Serial.print("Connecting to server: ");
 //     Serial.println(serverUrl);
-
 //     // 開始連接
 //     if (http.begin(client, serverUrl)) {
 //       http.addHeader("Content-Type", "application/json");
-
 //       // 準備JSON數據
 //       StaticJsonDocument<200> doc;  // 使用StaticJsonDocument來避免記憶體問題
 //       doc["bootCount"] = bootCount;
 //       doc["deviceId"] = deviceId;
-
 //       String jsonString;
 //       serializeJson(doc, jsonString);
-
 //       Serial.print("Sending data: ");
 //       Serial.println(jsonString);
-
 //       // 發送POST請求
 //       int httpResponseCode = http.POST(jsonString);
-
 //       if (httpResponseCode > 0) {
 //         Serial.print("HTTP Response code: ");
 //         Serial.println(httpResponseCode);
@@ -646,13 +635,15 @@ int checkUDP_number() {
       offset = 0;
       return -2;
     }
-    if (receivedNumber == 1751474546) {  // start
+    if (receivedNumber == 1751474546) {  // heartbeat
       handleCommand("heartbeat");
       return -2;
     }
     // Serial.println(receivedNumber);
+    //Serial.println("received success");
     return receivedNumber;
   }
+  //Serial.println("checkfail");
   return 0;
 }
 
@@ -709,7 +700,6 @@ void handleCommand(String command) {
 //     StaticJsonDocument<200> doc;  // 使用StaticJsonDocument來避免記憶體問題
 //     DeserializationError error = deserializeJson(doc, file);
 //     file.close();
-
 //     if (!error) {
 //       bootCount = doc["bootCount"] | 0;
 //       Serial.printf("Boot count read from file: %d\n", bootCount);
@@ -719,19 +709,16 @@ void handleCommand(String command) {
 //   } else {
 //     Serial.println("File not found, creating new one with bootCount = 0");
 //   }
-
 //   // 增加開機次數並更新 JSON 數據
 //   bootCount++;
 //   StaticJsonDocument<200> doc;
 //   doc["bootCount"] = bootCount;
-
 //   // 打開檔案以寫入新的 JSON 數據
 //   file = LittleFS.open("/bootCount.json", "w");
 //   if (file) {
 //     serializeJson(doc, file);
 //     file.close();
 //     Serial.printf("Updated boot count: %d\n", bootCount);
-
 //     // 嘗試發送數據到伺服器，如果失敗則重試
 //     int retryCount = 0;
 //     while (!sendDataToServer(bootCount) && retryCount < 3) {
@@ -744,11 +731,9 @@ void handleCommand(String command) {
 //   }
 // }
 
-// void tryRcv() {
-// }
-
+// Show the lightlist
 int currentTime = 0;
-void mainProgram() {  // 照著光表亮
+void mainProgram() {
   Serial.println("enter main");
   while (1) {
     Serial.println("enter loop");
@@ -760,9 +745,12 @@ void mainProgram() {  // 照著光表亮
         // Serial.print(".");
         btn1.read();
         int ii = checkUDP_number();
+        // Serial.print("currenttime: ");
+        // Serial.println(ii);
         if (ii == -1) return;
         if (ii > 0) {
           // Serial.print(ii);
+          Serial.println("startshow");
           currentTime = ii / 50;
           Serial.print("currentTime: ");
           Serial.println(currentTime);
@@ -846,7 +834,6 @@ void mainProgram() {  // 照著光表亮
   }
   Serial.println("out main");
 }
-
 
 void setup() {
   Wire.setSDA(SDA_PIN);
