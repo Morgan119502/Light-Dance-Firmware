@@ -8,6 +8,8 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <string.h>
+#include <math.h>
 
 #define PLAYER_NUM 0
 #define SCREEN_WIDTH 128
@@ -17,6 +19,7 @@
 
 #define SDA_PIN 12
 #define SCL_PIN 13
+
 
 String deviceId = "player" + String(PLAYER_NUM);  // 裝置名稱
 
@@ -50,8 +53,8 @@ int num_data;
 // LED腳位設定
 #define SWITCH_PIN 17
 #define BUTTON_PIN 16
-#define CNT 4096
-#define CHUNK_SIZE 100
+#define CNT 30 //api數量最大值
+#define CHUNK_SIZE 10
 #define LED_COUNT 7
 
 // LED setup
@@ -67,7 +70,7 @@ int sectionStart[] = { 0, 0, 0, 4, 0, 0, 4, 0 };
 const int sectionIndices[] = { 1, 2, 3, 4, 5, 6, 7, 4 };
 const int sectionRows[] = { 0, 1, 2, 2, 3, 4, 4, 5 };
 
-unsigned int array[CNT][8];
+unsigned int array[4096][8];
 EasyButton btn1(BUTTON_PIN, 100, true);
 CRGB* leds[6] = { led1, led2, led3, led4, led5, led6 };
 unsigned long startTime = 0;
@@ -105,118 +108,12 @@ void connectToWiFi() {
 
   return;
 }
-void fetchChunk() {
-  HTTPClient http;
-  //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
-  // String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-22:37:21";
-  http.begin(remoteUrl);
-  int httpResponseCode = http.GET();
-
-  if (httpResponseCode > 0) {
-    memoryData = http.getString();
-    // Serial.println(apiUrl);
-    // Serial.println("API fetch successful");
-
-    // File file;
-
-    // if (chunk == 0) {
-    //   file = LittleFS.open("/lightlist.json", "w");
-    // } else {
-    //   file = LittleFS.open("/lightlist.json", "a");
-    //   if(file){
-    //     Serial.println("open success");
-    //     // String checkstring = file.readString();
-    //     // Serial.println(checkstring);
-    //   }else{
-    //     Serial.println("open failed");
-    //   }
-
-    // }
-
-    // if (file) {
-    //   //file.seek(file.size());
-    //   file.print(memoryData);
-    //   file.close();
-    //   Serial.println("Data saved to memory");
-    // } else {
-    //   Serial.println("Failed to save data to memory");
-    // }
-
-    StaticJsonDocument<4096> doc;
-    DeserializationError error = deserializeJson(doc, memoryData);
-
-    if (error) {
-      Serial.print("JSON data size: ");
-      Serial.println(strlen(memoryData.c_str()));
-      Serial.print("JSON parsing error: ");
-      Serial.println(error.c_str());
-      return;
-    } else {
-      Serial.println("deserialization success");
-    }
-    const char* id = doc["_id"];
-    const char* user = doc["user"];
-    const char* update_time = doc["update_time"];
-    JsonArray players = doc["players"][PLAYER_NUM];
-
-    // for (int i = 0; i < CNT; i++) {
-    //   array[i][0] = doc["players"][0][i]["time"].as<long>();
-    //   Serial.print("time: ");
-    //   Serial.println(array[i][0]);
-    //   array[i][1] = doc["players"][0][i]["head"];
-    //   array[i][2] = doc["players"][0][i]["shoulder"];
-    //   array[i][4] = doc["players"][0][i]["front"];
-    //   array[i][5] = doc["players"][0][i]["skirt"];
-    //   array[i][3] = doc["players"][0][i]["chest"];
-    //   array[i][6] = doc["players"][0][i]["leg"];
-    //   array[i][7] = doc["players"][0][i]["shoes"];
-    // }
-
-    // for (JsonObject player : players) {
-    //   array[i][0] = player["time"];
-    //   Serial.print("time: ");
-    //   Serial.println(array[i][0]);
-    //   array[i][1] = player["head"];
-    //   array[i][2] = player["shoulder"];
-    //   array[i][4] = player["chest"];
-    //   array[i][5] = player["front"];
-    //   array[i][3] = player["skirt"];
-    //   array[i][6] = player["leg"];
-    //   array[i][7] = player["shoes"];
-    // }
-
-    num_data = players.size();
-    Serial.print("num_data: ");
-    Serial.println(num_data);
-
-    for (int i = 0; i < num_data && i < CNT; i++) {
-      JsonObject player = players[i];
-
-      array[i][0] = player["time"];
-      Serial.print("time: ");
-      Serial.println(array[i][0]);
-
-      array[i][1] = player["head"];
-      array[i][2] = player["shoulder"];
-      array[i][4] = player["chest"];
-      array[i][5] = player["front"];
-      array[i][3] = player["skirt"];
-      array[i][6] = player["leg"];
-      array[i][7] = player["shoes"];
-    }
-
-
-
-  } else {
-    Serial.printf("API fetch failed with error code: %d\n", httpResponseCode);
-  }
-  http.end();
-}
-// void fetchChunk(int chunk) {
+// void fetchChunk() {
 //   HTTPClient http;
-//   //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
-//   String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-20:35:59";
-//   http.begin(apiUrl);
+//   // String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
+//   // String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-22:37:21";
+//   // String apiUrl = "http://140.113.160.136:8000/items/eesa1/LATEST" + String(CNT) + "/chunk=" + String(chunk);
+//   http.begin(remoteUrl);
 //   int httpResponseCode = http.GET();
 
 //   if (httpResponseCode > 0) {
@@ -261,25 +158,136 @@ void fetchChunk() {
 //     } else {
 //       Serial.println("deserialization success");
 //     }
+//     const char* id = doc["_id"];
+//     const char* user = doc["user"];
+//     const char* update_time = doc["update_time"];
+//     JsonArray players = doc["players"][PLAYER_NUM];
 
-//     for (int i = 0; i < CNT); i++) {
-//       array[i][0] = doc["color_data"][i]["time"];
-//       Serial.print("time: ");
-//       Serial.println(array[i + CHUNK_SIZE * chunk][0]);
-//       array[i][1] = doc["color_data"][i]["head"];
-//       array[i][2] = doc["color_data"][i]["shoulder"];
-//       array[i][3] = doc["color_data"][i]["chest"];
-//       array[i][4] = doc["color_data"][i]["front"];
-//       array[i][5] = doc["color_data"][i]["skirt"];
-//       array[i][6] = doc["color_data"][i]["leg"];
-//       array[i][7] = doc["color_data"][i]["shoes"];
+//     // for (int i = 0; i < CNT; i++) {
+//     //   array[i][0] = doc["players"][0][i]["time"].as<long>();
+//     //   Serial.print("time: ");
+//     //   Serial.println(array[i][0]);
+//     //   array[i][1] = doc["players"][0][i]["head"];
+//     //   array[i][2] = doc["players"][0][i]["shoulder"];
+//     //   array[i][4] = doc["players"][0][i]["front"];
+//     //   array[i][5] = doc["players"][0][i]["skirt"];
+//     //   array[i][3] = doc["players"][0][i]["chest"];
+//     //   array[i][6] = doc["players"][0][i]["leg"];
+//     //   array[i][7] = doc["players"][0][i]["shoes"];
+//     // }
+
+//     // for (JsonObject player : players) {
+//     //   array[i][0] = player["time"];
+//     //   Serial.print("time: ");
+//     //   Serial.println(array[i][0]);
+//     //   array[i][1] = player["head"];
+//     //   array[i][2] = player["shoulder"];
+//     //   array[i][4] = player["chest"];
+//     //   array[i][5] = player["front"];
+//     //   array[i][3] = player["skirt"];
+//     //   array[i][6] = player["leg"];
+//     //   array[i][7] = player["shoes"];
+//     // }
+
+// num_data = players.size();
+// Serial.print("num_data: ");
+// Serial.println(num_data);
+
+// for (int i = 0; i < num_data && i < CNT; i++) {
+//   JsonObject player = players[i];
+
+//   array[i][0] = player["time"];
+//   Serial.print("time: ");
+//   Serial.println(array[i][0]);
+
+//   array[i][1] = player["head"];
+//   array[i][2] = player["shoulder"];
+//   array[i][4] = player["chest"];
+//   array[i][5] = player["front"];
+//   array[i][3] = player["skirt"];
+//   array[i][6] = player["leg"];
+//   array[i][7] = player["shoes"];
 //     }
+
+
 
 //   } else {
 //     Serial.printf("API fetch failed with error code: %d\n", httpResponseCode);
 //   }
 //   http.end();
 // }
+void fetchChunk(int chunk) {
+  HTTPClient http;
+  //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
+  // String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-20:35:59";
+
+  String apiUrl = "http://140.113.160.136:8000/items/eesa1/LATEST/player=0/chunk=" + String(chunk);
+  // String apiUrl = "http://140.113.160.136:8000/items/back_test/LATEST/player=0/chunk=" + String(chunk);
+
+
+
+  http.begin(apiUrl);
+  int httpResponseCode = http.GET();
+
+  if (httpResponseCode > 0) {
+    memoryData = http.getString();
+    // Serial.println(apiUrl);
+    // Serial.println("API fetch successful");
+
+
+    // if (file) {
+    //   //file.seek(file.size());
+    //   file.print(memoryData);
+    //   file.close();
+    //   Serial.println("Data saved to memory");
+    // } else {
+    //   Serial.println("Failed to save data to memory");
+    // }
+
+    StaticJsonDocument<4096> doc;
+    DeserializationError error = deserializeJson(doc, memoryData);
+
+    if (error) {
+      Serial.print("JSON data size: ");
+      Serial.println(strlen(memoryData.c_str()));
+      Serial.print("JSON parsing error: ");
+      Serial.println(error.c_str());
+      return;
+    } else {
+      Serial.print("deserialization success chuck ");
+      Serial.print(chunk);
+      Serial.println(" success");
+    }
+    // const char* id = doc["_id"];
+    // const char* user = doc["user"];
+    // const char* update_time = doc["update_time"];
+    JsonArray players = doc["player_data"];
+
+    num_data = players.size();
+    Serial.print("num_data: ");
+    Serial.println(num_data);
+
+    for (int i = 0; i < num_data && i < CNT; i++) {
+      JsonObject player = players[i];
+
+      array[i + CHUNK_SIZE * chunk][0] = player["time"];
+      Serial.print("time: ");
+      Serial.println(array[i + CHUNK_SIZE * chunk][0]);
+
+      array[i + CHUNK_SIZE * chunk][1] = player["head"];
+      array[i + CHUNK_SIZE * chunk][2] = player["shoulder"];
+      array[i + CHUNK_SIZE * chunk][4] = player["chest"];
+      array[i + CHUNK_SIZE * chunk][5] = player["front"];
+      array[i + CHUNK_SIZE * chunk][3] = player["skirt"];
+      array[i + CHUNK_SIZE * chunk][6] = player["leg"];
+      array[i + CHUNK_SIZE * chunk][7] = player["shoes"];
+    }
+  } else {
+    Serial.printf("API fetch failed with error code: %d\n", httpResponseCode);
+  }
+  http.end();
+  delay(20);
+}
 
 // Load data from memory
 // void loadLightListFromMemory() {
@@ -389,10 +397,10 @@ void fetchChunk() {
 // Setup for Wi-Fi mode
 void setupWiFiMode() {
   connectToWiFi();
-  fetchChunk();
-  // for (int chunk = 0; chunk < (CNT + CHUNK_SIZE - 1) / CHUNK_SIZE; chunk++) {
-  //   fetchChunk(chunk);
-  // }
+  //fetchChunk();
+  for (int chunk = 0; chunk < CNT; chunk++) {
+    fetchChunk(chunk);
+  }
   saveArrayToFile();
 }
 
@@ -403,7 +411,7 @@ void saveArrayToFile() {
     return;
   }
 
-  for (int i = 0; i < CNT; ++i) {
+  for (int i = 0; i < 4096; ++i) {
     for (int j = 0; j < 8; ++j) {
       file.write((uint8_t*)&array[i][j], sizeof(unsigned int));
     }
@@ -419,7 +427,7 @@ void loadArrayFromFile() {
     return;
   }
 
-  for (int i = 0; i < CNT; ++i) {
+  for (int i = 0; i < 4096; ++i) {
     for (int j = 0; j < 8; ++j) {
       if (file.available()) {
         file.read((uint8_t*)&array[i][j], sizeof(unsigned int));
@@ -447,7 +455,8 @@ int calculateBrightness(unsigned int data) {
   // Serial.println(data);
   // Serial.print("   data%256: ");
   // Serial.println(data%256);
-  return ((data % 256) * 255) / 100;
+  // return ((data % 256) * 255) / 100;
+  return pow(1.74 , (data % 256) / 10.0);
   // return (data >> 0) & 0xFF;
 }
 
@@ -749,14 +758,14 @@ void handleCommand(String command) {
 
 int currentTime = 0;
 void mainProgram() {  // 照著光表亮
-  Serial.println("enter main");
+  //Serial.println("enter main");
   while (1) {
-    Serial.println("enter loop");
+    //Serial.println("enter loop");
     // if (ON) {
     if (ON) {
       Serial.println("on");
       startTime = millis();
-      while (currentIndex < CNT) {
+      while (currentIndex < 4096) {
         // Serial.print(".");
         btn1.read();
         int ii = checkUDP_number();
@@ -800,34 +809,6 @@ void mainProgram() {  // 照著光表亮
             // Serial.print("head_bright: ");
             // Serial.println(calculateBrightness(array[currentIndex][1]));
 
-            // for (int j = 0; j < 5; j++) {
-            //   leds[0][j] = array[currentIndex][1] >> 8;
-            //   leds[0][j].nscale8(calculateBrightness(array[currentIndex][1]));
-            // }  //head
-            // for (int j = 0; j < 4; j++) {
-            //   leds[1][j] = array[currentIndex][2] >> 8;
-            //   leds[1][j].nscale8(calculateBrightness(array[currentIndex][2]));
-            // }  //shoulder
-            // for (int j = 0; j < 4; j++) {
-            //   leds[2][j] = array[currentIndex][3] >> 8;
-            //   leds[2][j].nscale8(calculateBrightness(array[currentIndex][3]));
-            // }  //chest
-            // leds[2][4] = array[currentIndex][4] >> 8;
-            // leds[2][4].nscale8(calculateBrightness(array[currentIndex][4]));  //arm
-            // for (int j = 0; j < 4; j++) {
-            //   leds[3][j] = array[currentIndex][5] >> 8;
-            //   leds[3][j].nscale8(calculateBrightness(array[currentIndex][5]));
-            // }  //waist, skirt
-            // for (int j = 0; j < 4; j++) {
-            //   leds[4][j] = array[currentIndex][6] >> 8;
-            //   leds[4][j].nscale8(calculateBrightness(array[currentIndex][6]));
-            // }
-            // leds[4][4] = array[currentIndex][7] >> 8;
-            // leds[4][4].nscale8(calculateBrightness(array[currentIndex][7]));  //arm
-            // for (int j = 0; j < 3; j++) {
-            //   leds[5][j] = array[currentIndex][4] >> 8;
-            //   leds[5][j].nscale8(calculateBrightness(array[currentIndex][4]));
-            // }  //front
             // for (int j = 0; j < LED_COUNT; j++) {
             //   leds[j][0] = array[currentIndex][j + 1] >> 8;
             //   //Serial.print(array[currentIndex][j + 1]);
