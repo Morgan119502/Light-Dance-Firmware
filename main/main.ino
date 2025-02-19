@@ -874,6 +874,9 @@ void mainProgram() {  // 照著光表亮
             firstStart = false;
             startTime = millis();
             offset = currentTime;
+            while (array[currentIndex][0] < currentTime) {
+              currentIndex++;
+            }
             Serial.print("offset: ");
             Serial.println(offset);
           }
