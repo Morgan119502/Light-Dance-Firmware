@@ -28,7 +28,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 WiFiUDP udp;  // 建立 UDP 對象
 
 unsigned int localPort = 12345;                 // 接收廣播的埠
-const char* responseAddress = "192.168.0.189";  // 替換為 Python 廣播端的 IP 地址
+// const char* responseAddress = "192.168.0.189";  // 替換為 Python 廣播端的 IP 地址
+const char* responseAddress = "192.168.0.104";
 unsigned int responsePort = 12346;              // 回傳訊息的埠
 
 // WiFi 設定
@@ -1017,7 +1018,7 @@ void setup() {
   } else {
     Serial.println("Memory Mode");
     setupMemoryMode();
-    display.println("\Memory Mode");
+    display.println("Memory Mode");
     display.display();
   }
 

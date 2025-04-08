@@ -40,6 +40,17 @@ sock.bind(("", response_port))
 exit_event = threading.Event()
 current_broadcast_message = ""
 
+def get_local_ip():
+    temp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    temp_sock.connect(("8.8.8.8", 80))
+    local_ip = temp_sock.getsockname()[0]
+    temp_sock.close()
+    return local_ip
+
+local_ip = get_local_ip()
+
+print("Computer IP:", local_ip)
+
 # 定義每塊板子的狀態
 class DeviceState:
     def __init__(self, ip, device_id):
@@ -97,7 +108,7 @@ isRunning = False
 heartbeatTrig = True
 
 def start_music():
-    music_file = r"C:\Users\User\Desktop\fixed_audio.mp3"  # 替換為你的音樂檔案路徑
+    music_file = r"C:\Users\morga\Desktop\lightdance V2.mp3"  # 替換為你的音樂檔案路徑
     # time.sleep(3)  # 音樂出現的延遲
     play_music(music_file)
 
