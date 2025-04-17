@@ -59,16 +59,16 @@ int num_data;
 const int ledPins[LED_COUNT] = { 2, 3, 4, 5, 6, 7 };
 CRGB led1[5];  //頭
 CRGB led2[4];  //肩
-CRGB led3[5];  //胸、手
+CRGB led3[11];  //胸、手
 CRGB led4[4];  //腰、裙
 CRGB led5[5];  //腿
 CRGB led6[3];  //前
-const int sectionSizes[] = { 5, 4, 4, 5, 4, 4, 5, 3 };
-int sectionStart[] = { 0, 0, 0, 4, 0, 0, 4, 0 };
-const int sectionIndices[] = { 1, 2, 3, 4, 5, 6, 7, 4 };
-const int sectionRows[] = { 0, 1, 2, 2, 3, 4, 4, 5 };
+const int sectionSizes[] =    { 5, 4, 4, 5, 8, 11, 4, 4, 5, 3 };
+int sectionStart[] =          { 0, 0, 0, 4, 5, 8, 0, 0, 4, 0 };
+const int sectionIndices[] =  { 1, 2, 3, 4, 8, 9, 5, 6, 7, 4 };
+const int sectionRows[] =     { 0, 1, 2, 2, 2, 2, 3, 4, 4, 5 };
 
-unsigned int array[4096][8];
+unsigned int array[4096][10];
 EasyButton btn1(BUTTON_PIN, 100, true);
 CRGB* leds[6] = { led1, led2, led3, led4, led5, led6 };
 unsigned long startTime = 0;
@@ -386,6 +386,8 @@ void fetchChunk(int chunk) {
       array[i + CHUNK_SIZE * chunk][3] = player["skirt"];
       array[i + CHUNK_SIZE * chunk][6] = player["leg"];
       array[i + CHUNK_SIZE * chunk][7] = player["shoes"];
+      array[i + CHUNK_SIZE * chunk][8] = player["weap_1"];
+      array[i + CHUNK_SIZE * chunk][9] = player["weap_2"];
     }
   } else {
     Serial.printf("API fetch failed with error code: %d\n", httpResponseCode);
@@ -897,7 +899,7 @@ void mainProgram() {  // 照著光表亮
           // Serial.println("print");
           if (currentTime >= array[currentIndex][0]) {
             // Serial.println("bling");
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < 10; i++) {
               for (int j = sectionStart[i]; j < sectionSizes[i]; j++) {
                 leds[sectionRows[i]][j] = array[currentIndex][sectionIndices[i]] >> 8;
                 leds[sectionRows[i]][j].nscale8(calculateBrightness(array[currentIndex][sectionIndices[i]]));
@@ -973,7 +975,7 @@ void setup() {
   // Initialize LED
   FastLED.addLeds<NEOPIXEL, 2>(leds[0], 5);
   FastLED.addLeds<NEOPIXEL, 3>(leds[1], 4);
-  FastLED.addLeds<NEOPIXEL, 4>(leds[2], 5);
+  FastLED.addLeds<NEOPIXEL, 4>(leds[2], 11);
   FastLED.addLeds<NEOPIXEL, 5>(leds[3], 4);
   FastLED.addLeds<NEOPIXEL, 6>(leds[4], 5);
   FastLED.addLeds<NEOPIXEL, 7>(leds[5], 3);
