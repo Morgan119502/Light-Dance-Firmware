@@ -111,30 +111,5 @@ void loop() {
     }
   }
   FastLED.show();
-  // // led1[0] = CRGB::Blue;     //head
-  // // led2[0] = CRGB::Red;      //shoulder
-  // // led3[0] = CRGB::Green;    //chest
-  // // led4[0] = CRGB::Cyan;     //waist
-  // // led5[0] = CRGB::Yellow;   //leg
-  // // led6[0] = CRGB::Magenta;  //front
-  // for (int j = 0; j < 5; j++) {
-  //   led1[j] = CRGB::Blue;
-  // }  //head
-  // for (int j = 0; j < 4; j++) {
-  //   led2[j] = CRGB::Red;
-  // }  //shoulder
-  // for (int j = 0; j < 4; j++) {
-  //   led3[j] = CRGB::Green;
-  // }  //chest
-  // led3[4] = CRGB::Magenta; //arm
-  // for (int j = 0; j < 5; j++) {
-  //   led4[j] = CRGB::Cyan;
-  // }  //waist, skirt
-  // for (int j = 0; j < 4; j++) {
-  //   led5[j] = CRGB::Yellow;
-  // } //leg
-  // led5[4] = CRGB::Aqua;  //shoes
-  // for (int j = 0; j < 3; j++) {
-  //   led6[j] = CRGB::Magenta;
-  // }  //front
+
 }
