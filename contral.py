@@ -108,7 +108,7 @@ isRunning = False
 heartbeatTrig = True
 
 def start_music():
-    music_file = r"C:\Users\morga\Desktop\lightdance V2.mp3"  # 替換為你的音樂檔案路徑
+    music_file = r"C:\Users\morga\Desktop\lightdance V3.mp3"  # 替換為你的音樂檔案路徑
     # time.sleep(3)  # 音樂出現的延遲
     play_music(music_file)
 
