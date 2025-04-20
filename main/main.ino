@@ -11,7 +11,7 @@
 #include <string.h>
 #include <math.h>
 
-#define PLAYER_NUM 0 // 玩家編號
+#define PLAYER_NUM 1 // 玩家編號
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -107,227 +107,13 @@ void connectToWiFi() {
 
   return;
 }
-// void fetchChunk() {
-//   HTTPClient http;
-//   //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
-//   // String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-22:37:21";
-//   http.begin(remoteUrl);
-//   int httpResponseCode = http.GET();
 
-//   if (httpResponseCode > 0) {
-//     memoryData = http.getString();
-//     // Serial.println(apiUrl);
-//     // Serial.println("API fetch successful");
-
-//     // File file;
-
-//     // if (chunk == 0) {
-//     //   file = LittleFS.open("/lightlist.json", "w");
-//     // } else {
-//     //   file = LittleFS.open("/lightlist.json", "a");
-//     //   if(file){
-//     //     Serial.println("open success");
-//     //     // String checkstring = file.readString();
-//     //     // Serial.println(checkstring);
-//     //   }else{
-//     //     Serial.println("open failed");
-//     //   }
-
-//     // }
-
-//     // if (file) {
-//     //   //file.seek(file.size());
-//     //   file.print(memoryData);
-//     //   file.close();
-//     //   Serial.println("Data saved to memory");
-//     // } else {
-//     //   Serial.println("Failed to save data to memory");
-//     // }
-
-//     StaticJsonDocument<4096> doc;
-//     DeserializationError error = deserializeJson(doc, memoryData);
-
-//     if (error) {
-//       Serial.print("JSON data size: ");
-//       Serial.println(strlen(memoryData.c_str()));
-//       Serial.print("JSON parsing error: ");
-//       Serial.println(error.c_str());
-//       return;
-//     } else {
-//       Serial.println("deserialization success");
-//     }
-//     const char* id = doc["_id"];
-//     const char* user = doc["user"];
-//     const char* update_time = doc["update_time"];
-//     JsonArray players = doc["players"][PLAYER_NUM];
-
-//     // for (int i = 0; i < CNT; i++) {
-//     //   array[i][0] = doc["players"][0][i]["time"].as<long>();
-//     //   Serial.print("time: ");
-//     //   Serial.println(array[i][0]);
-//     //   array[i][1] = doc["players"][0][i]["head"];
-//     //   array[i][2] = doc["players"][0][i]["shoulder"];
-//     //   array[i][4] = doc["players"][0][i]["front"];
-//     //   array[i][5] = doc["players"][0][i]["skirt"];
-//     //   array[i][3] = doc["players"][0][i]["chest"];
-//     //   array[i][6] = doc["players"][0][i]["leg"];
-//     //   array[i][7] = doc["players"][0][i]["shoes"];
-//     // }
-
-//     // for (JsonObject player : players) {
-//     //   array[i][0] = player["time"];
-//     //   Serial.print("time: ");
-//     //   Serial.println(array[i][0]);
-//     //   array[i][1] = player["head"];
-//     //   array[i][2] = player["shoulder"];
-//     //   array[i][4] = player["chest"];
-//     //   array[i][5] = player["front"];
-//     //   array[i][3] = player["skirt"];
-//     //   array[i][6] = player["leg"];
-//     //   array[i][7] = player["shoes"];
-//     // }
-
-//     num_data = players.size();
-//     Serial.print("num_data: ");
-//     Serial.println(num_data);
-
-//     for (int i = 0; i < num_data && i < CNT; i++) {
-//       JsonObject player = players[i];
-
-//       array[i][0] = player["time"];
-//       Serial.print("time: ");
-//       Serial.println(array[i][0]);
-
-//       array[i][1] = player["head"];
-//       array[i][2] = player["shoulder"];
-//       array[i][4] = player["chest"];
-//       array[i][5] = player["front"];
-//       array[i][3] = player["skirt"];
-//       array[i][6] = player["leg"];
-//       array[i][7] = player["shoes"];
-//     }
-
-
-
-//   } else {
-//     Serial.printf("API fetch failed with error code: %d\n", httpResponseCode);
-//   }
-//   http.end();
-// }
-// void fetchChunk(int chunk) {
-//   HTTPClient http;
-//   // String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
-//   // String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-22:37:21";
-//   // String apiUrl = "http://140.113.160.136:8000/items/eesa1/LATEST" + String(CNT) + "/chunk=" + String(chunk);
-//   http.begin(remoteUrl);
-//   int httpResponseCode = http.GET();
-
-//   if (httpResponseCode > 0) {
-//     memoryData = http.getString();
-//     // Serial.println(apiUrl);
-//     // Serial.println("API fetch successful");
-
-//     // File file;
-
-//     // if (chunk == 0) {
-//     //   file = LittleFS.open("/lightlist.json", "w");
-//     // } else {
-//     //   file = LittleFS.open("/lightlist.json", "a");
-//     //   if(file){
-//     //     Serial.println("open success");
-//     //     // String checkstring = file.readString();
-//     //     // Serial.println(checkstring);
-//     //   }else{
-//     //     Serial.println("open failed");
-//     //   }
-
-//     // }
-
-//     // if (file) {
-//     //   //file.seek(file.size());
-//     //   file.print(memoryData);
-//     //   file.close();
-//     //   Serial.println("Data saved to memory");
-//     // } else {
-//     //   Serial.println("Failed to save data to memory");
-//     // }
-
-//     StaticJsonDocument<4096> doc;
-//     DeserializationError error = deserializeJson(doc, memoryData);
-
-//     if (error) {
-//       Serial.print("JSON data size: ");
-//       Serial.println(strlen(memoryData.c_str()));
-//       Serial.print("JSON parsing error: ");
-//       Serial.println(error.c_str());
-//       return;
-//     } else {
-//       Serial.println("deserialization success");
-//     }
-//     const char* id = doc["_id"];
-//     const char* user = doc["user"];
-//     const char* update_time = doc["update_time"];
-//     JsonArray players = doc["players"][PLAYER_NUM];
-
-//     // for (int i = 0; i < CNT; i++) {
-//     //   array[i][0] = doc["players"][0][i]["time"].as<long>();
-//     //   Serial.print("time: ");
-//     //   Serial.println(array[i][0]);
-//     //   array[i][1] = doc["players"][0][i]["head"];
-//     //   array[i][2] = doc["players"][0][i]["shoulder"];
-//     //   array[i][4] = doc["players"][0][i]["front"];
-//     //   array[i][5] = doc["players"][0][i]["skirt"];
-//     //   array[i][3] = doc["players"][0][i]["chest"];
-//     //   array[i][6] = doc["players"][0][i]["leg"];
-//     //   array[i][7] = doc["players"][0][i]["shoes"];
-//     // }
-
-//     // for (JsonObject player : players) {
-//     //   array[i][0] = player["time"];
-//     //   Serial.print("time: ");
-//     //   Serial.println(array[i][0]);
-//     //   array[i][1] = player["head"];
-//     //   array[i][2] = player["shoulder"];
-//     //   array[i][4] = player["chest"];
-//     //   array[i][5] = player["front"];
-//     //   array[i][3] = player["skirt"];
-//     //   array[i][6] = player["leg"];
-//     //   array[i][7] = player["shoes"];
-//     // }
-
-// num_data = players.size();
-// Serial.print("num_data: ");
-// Serial.println(num_data);
-
-// for (int i = 0; i < num_data && i < CNT; i++) {
-//   JsonObject player = players[i];
-
-//   array[i][0] = player["time"];
-//   Serial.print("time: ");
-//   Serial.println(array[i][0]);
-
-//   array[i][1] = player["head"];
-//   array[i][2] = player["shoulder"];
-//   array[i][4] = player["chest"];
-//   array[i][5] = player["front"];
-//   array[i][3] = player["skirt"];
-//   array[i][6] = player["leg"];
-//   array[i][7] = player["shoes"];
-//     }
-
-
-
-// //   } else {
-// //     Serial.printf("API fetch failed with error code: %d\n", httpResponseCode);
-// //   }
-// //   http.end();
-// // }
 void fetchChunk(int chunk) {
   HTTPClient http;
   //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
   // String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-20:35:59";
 
-  String apiUrl = "http://140.113.160.136:8000/items/eesa1/LATEST/player=0/chunk=" + String(chunk);
+  String apiUrl = "http://140.113.160.136:8000/items/eesa1/LATEST/player=" + String(PLAYER_NUM) + "/chunk=" + String(chunk);
   // String apiUrl = "http://140.113.160.136:8000/items/back_test/LATEST/player=0/chunk=" + String(chunk);
 
 
@@ -362,6 +148,11 @@ void fetchChunk(int chunk) {
     } else {
       Serial.print("deserialization success chuck ");
       Serial.print(chunk);
+      display.clearDisplay();
+      display.setTextSize(2);
+      display.setCursor(1,1);
+      display.println(chunk);
+      display.display();
       Serial.println(" success");
     }
     // const char* id = doc["_id"];
@@ -396,112 +187,6 @@ void fetchChunk(int chunk) {
   http.end();
   delay(20);
 }
-
-
-// Load data from memory
-// void loadLightListFromMemory() {
-//   File file = LittleFS.open("/lightlist.json", "r");
-//   if (file && file.size() > 0) {
-//     Serial.println("Read data in memory");
-//     memoryData = file.readString();
-//     Serial.println(memoryData);
-//     file.close();
-
-//     StaticJsonDocument<4096> doc;
-//     DeserializationError error = deserializeJson(doc, memoryData);
-
-//     if (error) {
-//       Serial.print("JSON parsing error: ");
-//       Serial.println(error.c_str());
-//       return;
-//     }
-
-//     for (int i = 0; i < CNT; i++) {
-//       array[i][0] = doc["color_data"][i]["time"];
-//       array[i][1] = doc["color_data"][i]["head"];
-//       array[i][2] = doc["color_data"][i]["shoulder"];
-//       array[i][3] = doc["color_data"][i]["chest"];
-//       array[i][4] = doc["color_data"][i]["arm_waist"];
-//       array[i][5] = doc["color_data"][i]["leg1"];
-//       array[i][6] = doc["color_data"][i]["leg2"];
-//       array[i][7] = doc["color_data"][i]["shoes"];
-//     }
-
-//   } else {
-//     Serial.println("No data found in memory");
-//   }
-// }
-// void loadLightListFromMemory() {
-//     File file = LittleFS.open("/lightlist.json", "r");
-//     if (!file || file.size() == 0) {
-//         Serial.println("No data found in memory");
-//         return;
-//     }
-
-//     const size_t bufferSize = 512; // 單次讀取的緩衝區大小
-//     char buffer[bufferSize + 1];   // +1 用於 null 結尾
-//     String incompletePart = "";  // 用於儲存上一段未完成的部分
-//     size_t offset = 0;            // 用於記錄檔案讀取的偏移量
-
-//     while (offset < file.size()) {
-//         file.seek(offset, SeekSet); // 設定檔案偏移量
-//         size_t bytesRead = file.readBytes(buffer, bufferSize);
-//         buffer[bytesRead] = '\0'; // 確保字串結尾
-//         offset += bytesRead;       // 更新偏移量
-
-//         // 將未完成部分與當前段結合
-//         String jsonChunk = incompletePart + String(buffer);
-
-//         // 嘗試解析完整 JSON
-//         StaticJsonDocument<1024> doc; // 根據實際 JSON 結構調整大小
-//         DeserializationError error = deserializeJson(doc, jsonChunk);
-
-//         if (error) {
-//             if (error == DeserializationError::IncompleteInput) {
-//                 // 若解析失敗但為不完整輸入，保留當前段作為未完成部分
-//                 incompletePart = jsonChunk;
-//             } else {
-//                 Serial.print("JSON parsing error: ");
-//                 Serial.println(error.c_str());
-//                 file.close();
-//                 return;
-//             }
-//         } else {
-//             incompletePart = ""; // 清空未完成部分
-
-//             // 確保 color_data 是陣列
-//             if (!doc["color_data"].is<JsonArray>()) {
-//                 Serial.println("color_data is not an array");
-//                 continue;
-//             }
-
-//             JsonArray colorData = doc["color_data"].as<JsonArray>();
-
-//             // 遍歷 JSON 陣列
-//             for (JsonObject obj : colorData) {
-//                 int index = obj["index"].as<int>(); // 根據 JSON 結構調整
-//                 if (index >= 0 && index < CNT) {
-//                     array[index][0] = obj["time"].as<int>();
-//                     array[index][1] = obj["head"].as<int>();
-//                     array[index][2] = obj["shoulder"].as<int>();
-//                     array[index][3] = obj["chest"].as<int>();
-//                     array[index][4] = obj["arm_waist"].as<int>();
-//                     array[index][5] = obj["leg1"].as<int>();
-//                     array[index][6] = obj["leg2"].as<int>();
-//                     array[index][7] = obj["shoes"].as<int>();
-//                 }
-//             }
-//         }
-//     }
-
-//     if (incompletePart.length() == 0) {
-//         Serial.println("Warning: Incomplete JSON data at the end of the file");
-//     }
-
-//     file.close();
-// }
-
-
 
 // Setup for Wi-Fi mode
 void setupWiFiMode() {
@@ -586,32 +271,6 @@ void onButton() {
   // }
 }
 
-// test get api
-// void getCheck() {
-//   if (WiFi.status() == WL_CONNECTED) {
-//     WiFiClient client;
-//     HTTPClient http;
-//     Serial.print("Connecting to server: ");
-//     Serial.println(testUrl);
-//     http.begin(client, testUrl);
-//     //    http.addHeader("Accept", "application/json");
-//     http.addHeader("Content-Type", "application/json");
-//     int httpResponseCode = http.GET();
-//     if (httpResponseCode == 200) {
-//       Serial.println("GET request successful!");
-//       String response = http.getString();
-//       Serial.print("Response size: ");
-//       Serial.println(http.getSize());
-//       Serial.print("Response: ");
-//       Serial.println(response);
-//     } else {
-//       Serial.print("GET request failed, error code: ");
-//       Serial.println(httpResponseCode);
-//     }
-//     http.end();
-//   }
-// }
-
 void remoteCheck() {
   if (WiFi.status() == WL_CONNECTED) {
     WiFiClient client;
@@ -641,47 +300,6 @@ void remoteCheck() {
   }
 }
 
-// 發送數據到伺服器的函數
-// bool sendDataToServer(int bootCount) {
-//   if (WiFi.status() == WL_CONNECTED) {
-//     WiFiClient client;
-//     HTTPClient http;
-//     Serial.print("Connecting to server: ");
-//     Serial.println(serverUrl);
-//     // 開始連接
-//     if (http.begin(client, serverUrl)) {
-//       http.addHeader("Content-Type", "application/json");
-//       // 準備JSON數據
-//       StaticJsonDocument<200> doc;  // 使用StaticJsonDocument來避免記憶體問題
-//       doc["bootCount"] = bootCount;
-//       doc["deviceId"] = deviceId;
-//       String jsonString;
-//       serializeJson(doc, jsonString);
-//       Serial.print("Sending data: ");
-//       Serial.println(jsonString);
-//       // 發送POST請求
-//       int httpResponseCode = http.POST(jsonString);
-//       if (httpResponseCode > 0) {
-//         Serial.print("HTTP Response code: ");
-//         Serial.println(httpResponseCode);
-//         http.end();
-//         return true;
-//       } else {
-//         Serial.print("Error on sending POST: ");
-//         Serial.println(httpResponseCode);
-//         Serial.println(http.errorToString(httpResponseCode));
-//         http.end();
-//         return false;
-//       }
-//     } else {
-//       Serial.println("Unable to connect to server");
-//       return false;
-//     }
-//   } else {
-//     Serial.println("Error in WiFi connection");
-//     return false;
-//   }
-// }
 
 void checkHTTP() {
   // 處理 HTTP 請求
@@ -803,54 +421,6 @@ void handleCommand(String command) {
   }
 }
 
-// void testmain() {
-//   // 新增：接收 UDP 廣播訊息
-//   char incomingPacket[255];  // 用於存儲接收的廣播消息
-//   int packetSize = udp.parsePacket();
-//   if (packetSize) {
-//     int len = udp.read(incomingPacket, 255);
-//     incomingPacket[len] = 0;  // 確保字串以 '\0' 結尾
-//     String command = String(incomingPacket);
-//     if (command != "heartbeat") Serial.printf("Received UDP packet: %s\n", command.c_str());
-//     handleCommand(command);  // 處理接收到的指令
-//   }
-//   int bootCount = 0;
-//   File file = LittleFS.open("/bootCount.json", "r");
-//   if (file) {
-//     StaticJsonDocument<200> doc;  // 使用StaticJsonDocument來避免記憶體問題
-//     DeserializationError error = deserializeJson(doc, file);
-//     file.close();
-//     if (!error) {
-//       bootCount = doc["bootCount"] | 0;
-//       Serial.printf("Boot count read from file: %d\n", bootCount);
-//     } else {
-//       Serial.println("Failed to parse JSON, starting with bootCount = 0");
-//     }
-//   } else {
-//     Serial.println("File not found, creating new one with bootCount = 0");
-//   }
-//   // 增加開機次數並更新 JSON 數據
-//   bootCount++;
-//   StaticJsonDocument<200> doc;
-//   doc["bootCount"] = bootCount;
-//   // 打開檔案以寫入新的 JSON 數據
-//   file = LittleFS.open("/bootCount.json", "w");
-//   if (file) {
-//     serializeJson(doc, file);
-//     file.close();
-//     Serial.printf("Updated boot count: %d\n", bootCount);
-//     // 嘗試發送數據到伺服器，如果失敗則重試
-//     int retryCount = 0;
-//     while (!sendDataToServer(bootCount) && retryCount < 3) {
-//       Serial.println("Retrying...");
-//       delay(1000);
-//       retryCount++;
-//     }
-//   } else {
-//     Serial.println("Failed to open file for writing");
-//   }
-// }
-
 // Show the lightlist
 int currentTime = 0;
 void mainProgram() {  // 照著光表亮
@@ -867,7 +437,16 @@ void mainProgram() {  // 照著光表亮
         int ii = checkUDP_number();
         // Serial.print("currenttime: ");
         // Serial.println(ii);
-        if (ii == -1) return;
+        if (ii == -1) {
+          display.clearDisplay();
+          display.setTextSize(2);
+          display.setCursor(1,1);
+          display.println("\n!!stop!!");
+          display.display();
+          FastLED.clear();
+          FastLED.show();
+          return;
+        }
         if (ii > 0) {
           // Serial.print(ii);
           Serial.println("startshow");
@@ -1015,14 +594,14 @@ void setup() {
 
   if (wifiMode) {
     Serial.println("Wi-Fi Mode");
-    setupWiFiMode();
     display.println("\nWifi Mode");
-    display.display();
+    display.display();    
+    setupWiFiMode();
   } else {
     Serial.println("Memory Mode");
-    setupMemoryMode();
     display.println("Memory Mode");
     display.display();
+    setupMemoryMode();
   }
 
   Serial.println("Setup Finished OuOb");
@@ -1031,8 +610,17 @@ void setup() {
   // 啟動 UDP 接收器
   udp.begin(localPort);
   Serial.printf("UDP listening on port %d\n", localPort);
-  // display.clearDisplay();
+  display.clearDisplay();
   display.setTextSize(2);
+  display.setCursor(0,0);
+  if (wifiMode) {
+    display.println("\nWifi Mode");
+    display.display(); 
+  }
+  else {
+    display.println("Memory Md");
+    display.display();
+  }
   display.println("\n!!Ready!!");
   display.display();
 }
@@ -1047,6 +635,11 @@ void loop() {
 
   // 根據 API 狀態執行主程式
   if (startMainProgram) {
+    display.clearDisplay();
+    display.setTextSize(2);    
+    display.setCursor(1,1);
+    display.println("\n!!run!!");
+    display.display();
     // 主程式邏輯
     mainProgram();
     btn1.read();
