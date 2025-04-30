@@ -28,9 +28,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 WiFiUDP udp;  // 建立 UDP 對象
 
 unsigned int localPort = 12345;                 // 接收廣播的埠
-// const char* responseAddress = "192.168.0.189";  // 替換為 Python 廣播端的 IP 地址
-// const char* responseAddress = "192.168.0.104";
-// const char* responseAddress = "192.168.50.201";
 char* responseAddress;
 unsigned int responsePort = 12346;              // 回傳訊息的埠
 
@@ -41,8 +38,7 @@ char* ssid;
 const char* password = "wifiyee219";  // wifi密碼
 
 // API設定
-const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/LATEST";  //最後不要加斜線!!!!  // 可以用這個練字串處理了 OuOb
-
+const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/LATEST";  //最後不要加斜線!!!!
 // 全域變數
 WiFiServer server(80);          // 設置 HTTP 伺服器埠
 bool startMainProgram = false;  // 主程式啟動開關
