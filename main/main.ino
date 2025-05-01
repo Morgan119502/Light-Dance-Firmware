@@ -11,7 +11,7 @@
 #include <string.h>
 #include <math.h>
 
-#define PLAYER_NUM 4 // 玩家編號
+#define PLAYER_NUM 2 // 玩家編號
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -49,24 +49,36 @@ int offset = 0;
 int num_data;
 
 // LED腳位設定
+#define DEBUG_PIN 18
 #define SWITCH_PIN 17
 #define BUTTON_PIN 16
 #define WIFI_PIN 20
 #define CNT 30 //api數量最大值
 #define CHUNK_SIZE 10
 #define LED_COUNT 7
+#define head     0xFF3B30  // RED
+#define shoulder 0xFF9500  // ORANGE
+#define chest    0xFFD60A  // YELLOW
+#define front    0x64DD17  // LIME GREEN
+#define skirt    0x00E676  // NEON GREEN
+#define leg      0x40E0D0  // AQUA
+#define shoes    0x5AC8FA  // SKY BLUE
+#define weap_1   0xAF52DE  // PURPLE
+#define weap_2   0xFF2D55  // PINK
+
+unsigned int part[10] = { 0, head, shoulder, chest, front, skirt, leg, shoes, weap_1, weap_2};
 
 // LED setup
 const int ledPins[LED_COUNT] = { 2, 3, 4, 5, 6, 7 };
 CRGB led1[5];  //頭
 CRGB led2[4];  //肩
-CRGB led3[11];  //胸、手
+CRGB led3[11];  //胸、手、武器
 CRGB led4[4];  //腰、裙
-CRGB led5[5];  //腿
+CRGB led5[5];  //腿、鞋
 CRGB led6[3];  //前
 const int sectionSizes[] =    { 5, 4, 4, 5, 8, 11, 4, 4, 5, 3 };
 int sectionStart[] =          { 0, 0, 0, 4, 5, 8, 0, 0, 4, 0 };
-const int sectionIndices[] =  { 1, 2, 3, 4, 8, 9, 5, 6, 7, 4 };
+const int sectionIndices[] =  { 1, 2, 4, 5, 8, 9, 3, 6, 7, 4 };
 const int sectionRows[] =     { 0, 1, 2, 2, 2, 2, 3, 4, 4, 5 };
 
 unsigned int array[4096][10];
@@ -173,9 +185,9 @@ void fetchChunk(int chunk) {
 
       array[i + CHUNK_SIZE * chunk][1] = player["head"];
       array[i + CHUNK_SIZE * chunk][2] = player["shoulder"];
-      array[i + CHUNK_SIZE * chunk][4] = player["chest"];
-      array[i + CHUNK_SIZE * chunk][5] = player["front"];
       array[i + CHUNK_SIZE * chunk][3] = player["skirt"];
+      array[i + CHUNK_SIZE * chunk][4] = player["chest"];
+      array[i + CHUNK_SIZE * chunk][5] = player["front"]; //這是手
       array[i + CHUNK_SIZE * chunk][6] = player["leg"];
       array[i + CHUNK_SIZE * chunk][7] = player["shoes"];
       array[i + CHUNK_SIZE * chunk][8] = player["weap_1"];
@@ -509,10 +521,30 @@ void mainProgram() {  // 照著光表亮
   Serial.println("out main");
 }
 
+void debug() {
+  for (int i = 0; i < 10; i++) {
+    for (int j = sectionStart[i]; j < sectionSizes[i]; j++) {
+      leds[sectionRows[i]][j] = part[sectionIndices[i]];
+    }
+  }
+  Serial.print("BLINK");
+  FastLED.setBrightness(255);
+  FastLED.show();
+  delay(1000);
+  while (1);
+}
+
 void setup() {
   Wire.setSDA(SDA_PIN);
   Wire.setSCL(SCL_PIN);
   Wire.begin();
+
+  FastLED.addLeds<NEOPIXEL, 2>(leds[0], 5);
+  FastLED.addLeds<NEOPIXEL, 3>(leds[1], 4);
+  FastLED.addLeds<NEOPIXEL, 4>(leds[2], 11);
+  FastLED.addLeds<NEOPIXEL, 5>(leds[3], 4);
+  FastLED.addLeds<NEOPIXEL, 6>(leds[4], 5);
+  FastLED.addLeds<NEOPIXEL, 7>(leds[5], 3);
 
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -538,9 +570,14 @@ void setup() {
 
   delay(1000);
 
+  pinMode(DEBUG_PIN, INPUT_PULLUP);
   pinMode(SWITCH_PIN, INPUT_PULLUP);
   pinMode(WIFI_PIN, INPUT_PULLUP);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  if (!digitalRead(DEBUG_PIN)){
+    debug();
+  }
 
   if (digitalRead(WIFI_PIN)) {
     responseAddress = "192.168.0.104";
@@ -566,12 +603,6 @@ void setup() {
   // if (tryToRcv) tryRcv();
 
   // Initialize LED
-  FastLED.addLeds<NEOPIXEL, 2>(leds[0], 5);
-  FastLED.addLeds<NEOPIXEL, 3>(leds[1], 4);
-  FastLED.addLeds<NEOPIXEL, 4>(leds[2], 11);
-  FastLED.addLeds<NEOPIXEL, 5>(leds[3], 4);
-  FastLED.addLeds<NEOPIXEL, 6>(leds[4], 5);
-  FastLED.addLeds<NEOPIXEL, 7>(leds[5], 3);
 
   FastLED.clear();
   FastLED.setBrightness(255);
