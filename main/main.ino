@@ -11,7 +11,7 @@
 #include <string.h>
 #include <math.h>
 
-#define PLAYER_NUM 2 // 玩家編號
+#define PLAYER_NUM 0 // 玩家編號
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
