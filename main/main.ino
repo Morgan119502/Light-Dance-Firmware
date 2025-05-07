@@ -11,7 +11,7 @@
 #include <string.h>
 #include <math.h>
 
-#define PLAYER_NUM 2 // 玩家編號
+#define PLAYER_NUM 4 // 玩家編號
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -38,7 +38,7 @@ char* ssid;
 const char* password = "wifiyee219";  // wifi密碼
 
 // API設定
-const char* remoteUrl = "http://140.113.160.136:8000/items/funding/LATEST";  //最後不要加斜線!!!!
+const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/LATEST";  //最後不要加斜線!!!!
 // 全域變數
 WiFiServer server(80);          // 設置 HTTP 伺服器埠
 bool startMainProgram = false;  // 主程式啟動開關
@@ -125,7 +125,7 @@ void fetchChunk(int chunk) {
   //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
   // String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-20:35:59";
 
-  String apiUrl = "http://140.113.160.136:8000/items/funding/LATEST/player=" + String(PLAYER_NUM) + "/chunk=" + String(chunk);
+  String apiUrl = "http://140.113.160.136:8000/items/eesa1/LATEST/player=" + String(PLAYER_NUM) + "/chunk=" + String(chunk);
   // String apiUrl = "http://140.113.160.136:8000/items/back_test/LATEST/player=0/chunk=" + String(chunk);
 
 
@@ -219,7 +219,7 @@ void saveArrayToFile() {
   }
 
   for (int i = 0; i < 4096; ++i) {
-    for (int j = 0; j < 8; ++j) {
+    for (int j = 0; j < 10; ++j) {
       file.write((uint8_t*)&array[i][j], sizeof(unsigned int));
     }
   }
@@ -237,7 +237,7 @@ void loadArrayFromFile() {
   }
 
   for (int i = 0; i < 4096; ++i) {
-    for (int j = 0; j < 8; ++j) {
+    for (int j = 0; j < 10; ++j) {
       if (file.available()) {
         file.read((uint8_t*)&array[i][j], sizeof(unsigned int));
       } else {
