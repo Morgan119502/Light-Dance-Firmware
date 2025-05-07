@@ -31,7 +31,7 @@ heartbeat_event = threading.Event()
 heartbeat_event.set()
 
 # UDP 通信相關設置
-broadcast_address = "192.168.0.255"
+broadcast_address = "192.168.50.255"
 port = 12345
 response_port = 12346
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -123,7 +123,7 @@ def stop_music():
 # 發送停止訊號，直到所有設備回應
 def start_function():
     start_music() 
-    time.sleep(0.5)  # 延遲調整
+    time.sleep(0.15)  # 延遲調整
     broadcast_message("start")
     global isRunning
     global rootTime

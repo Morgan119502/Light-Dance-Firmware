@@ -11,7 +11,7 @@
 #include <string.h>
 #include <math.h>
 
-#define PLAYER_NUM 0 // 玩家編號
+#define PLAYER_NUM 2 // 玩家編號
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -38,7 +38,7 @@ char* ssid;
 const char* password = "wifiyee219";  // wifi密碼
 
 // API設定
-const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/LATEST";  //最後不要加斜線!!!!
+const char* remoteUrl = "http://140.113.160.136:8000/items/funding/LATEST";  //最後不要加斜線!!!!
 // 全域變數
 WiFiServer server(80);          // 設置 HTTP 伺服器埠
 bool startMainProgram = false;  // 主程式啟動開關
@@ -53,7 +53,7 @@ int num_data;
 #define SWITCH_PIN 17
 #define BUTTON_PIN 16
 #define WIFI_PIN 20
-#define CNT 30 //api數量最大值
+#define CNT 40 //api數量最大值
 #define CHUNK_SIZE 10
 #define LED_COUNT 7
 #define head     0xFF3B30  // RED
@@ -125,7 +125,7 @@ void fetchChunk(int chunk) {
   //String apiUrl = "http://140.113.160.136:8000/get_test_lightlist/cnt=" + String(CNT) + "/chunk=" + String(chunk);
   // String apiUrl = "http://140.113.160.136:8000/items/eesa1/2025-02-14-20:35:59";
 
-  String apiUrl = "http://140.113.160.136:8000/items/eesa1/LATEST/player=" + String(PLAYER_NUM) + "/chunk=" + String(chunk);
+  String apiUrl = "http://140.113.160.136:8000/items/funding/LATEST/player=" + String(PLAYER_NUM) + "/chunk=" + String(chunk);
   // String apiUrl = "http://140.113.160.136:8000/items/back_test/LATEST/player=0/chunk=" + String(chunk);
 
 
