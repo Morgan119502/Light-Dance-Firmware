@@ -23,7 +23,7 @@ void setup() {
 void loop() {
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 10; j++) {
-      leds[i][j] = CRGB::White;
+      leds[i][j] = CRGB::Red;
     }
   }
   FastLED.show();
