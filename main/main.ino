@@ -10,8 +10,12 @@
 #include <Adafruit_SSD1306.h>
 #include <string.h>
 #include <math.h>
+#include "pico/stdlib.h"
+#include "hardware/structs/systick.h"
+#include "hardware/structs/scb.h"
+#include "hardware/watchdog.h"
 
-#define PLAYER_NUM 1 // 玩家編號
+#define PLAYER_NUM 3  // 玩家編號
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -27,9 +31,9 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 WiFiUDP udp;  // 建立 UDP 對象
 
-unsigned int localPort = 12345;                 // 接收廣播的埠
+unsigned int localPort = 12345;  // 接收廣播的埠
 char* responseAddress;
-unsigned int responsePort = 12346;              // 回傳訊息的埠
+unsigned int responsePort = 12346;  // 回傳訊息的埠
 
 // WiFi 設定
 // const char* ssid = "EE219B";          // wifi名稱
@@ -47,39 +51,40 @@ bool tryToRcv = true;           // 是否嘗試接收檔案
 bool firstStart = true;
 int offset = 0;
 int num_data;
+bool wifiAdress = 0;
 
 // LED腳位設定
 #define DEBUG_PIN 18
 #define SWITCH_PIN 17
 #define BUTTON_PIN 16
 #define WIFI_PIN 20
-#define CNT 40 //api數量最大值
+#define CNT 40  //api數量最大值
 #define CHUNK_SIZE 10
 #define LED_COUNT 7
-#define head     0xFF3B30  // RED
+#define head 0xFF3B30      // RED
 #define shoulder 0xFF9500  // ORANGE
-#define chest    0xFFD60A  // YELLOW
-#define front    0x64DD17  // LIME GREEN
-#define skirt    0x00E676  // NEON GREEN
-#define leg      0x40E0D0  // AQUA
-#define shoes    0x5AC8FA  // SKY BLUE
-#define weap_1   0xAF52DE  // PURPLE
-#define weap_2   0xFF2D55  // PINK
+#define chest 0xFFD60A     // YELLOW
+#define front 0x64DD17     // LIME GREEN
+#define skirt 0x00E676     // NEON GREEN
+#define leg 0x40E0D0       // AQUA
+#define shoes 0x5AC8FA     // SKY BLUE
+#define weap_1 0xAF52DE    // PURPLE
+#define weap_2 0xFF2D55    // PINK
 
-unsigned int part[10] = { 0, head, shoulder, chest, front, skirt, leg, shoes, weap_1, weap_2};
+unsigned int part[10] = { 0, head, shoulder, chest, front, skirt, leg, shoes, weap_1, weap_2 };
 
 // LED setup
 const int ledPins[LED_COUNT] = { 2, 3, 4, 5, 6, 7 };
-CRGB led1[5];  //頭
-CRGB led2[4];  //肩
+CRGB led1[5];   //頭
+CRGB led2[4];   //肩
 CRGB led3[11];  //胸、手、武器
-CRGB led4[4];  //腰、裙
-CRGB led5[5];  //腿、鞋
-CRGB led6[3];  //前
-const int sectionSizes[] =    { 5, 4, 4, 5, 8, 11, 4, 4, 5, 3 };
-int sectionStart[] =          { 0, 0, 0, 4, 5, 8, 0, 0, 4, 0 };
-const int sectionIndices[] =  { 1, 2, 4, 5, 8, 9, 3, 6, 7, 4 };
-const int sectionRows[] =     { 0, 1, 2, 2, 2, 2, 3, 4, 4, 5 };
+CRGB led4[4];   //腰、裙
+CRGB led5[5];   //腿、鞋
+CRGB led6[3];   //前
+const int sectionSizes[] = { 5, 4, 4, 5, 8, 11, 4, 4, 5, 3 };
+int sectionStart[] = { 0, 0, 0, 4, 5, 8, 0, 0, 4, 0 };
+const int sectionIndices[] = { 1, 2, 4, 5, 8, 9, 3, 6, 7, 4 };
+const int sectionRows[] = { 0, 1, 2, 2, 2, 2, 3, 4, 4, 5 };
 
 unsigned int array[4096][10];
 EasyButton btn1(BUTTON_PIN, 100, true);
@@ -88,23 +93,61 @@ unsigned long startTime = 0;
 bool ON = 0;
 bool wifiMode = false;
 
+bool received = false;
+
 // int i = 0;
 int currentIndex = 0;
 String memoryData;
 
+// void clearWiFiState() {
+//   Serial.println(">>> cyw43_arch_deinit()");
+//   cyw43_arch_deinit();          // 解除初始化 CYW43 driver 與 LWIP  [oai_citation:0‡Lorenz Ruprecht](https://lorenz-ruprecht.at/docu/pico-sdk/1.4.0/html/cyw43__arch_8h.html?utm_source=chatgpt.com)
+//   delay(200);                   // 等待底層完全釋放資源
+
+//   Serial.println(">>> cyw43_arch_init()");
+//   cyw43_arch_init();            // 重新初始化 CYW43 driver 與 LWIP  [oai_citation:1‡Lorenz Ruprecht](https://lorenz-ruprecht.at/docu/pico-sdk/1.4.0/html/cyw43__arch_8h.html?utm_source=chatgpt.com)
+//   cyw43_arch_enable_sta_mode(); // 切回 Station 模式
+//   delay(100);
+// }
+
+void reboot() {
+  watchdog_enable(1, 1);
+  while (true) {
+    // tight_loop_contents();
+  }
+}
+
 // Check wifi connection
 void connectToWiFi() {
+
+  received = false;
   display.clearDisplay();
   display.setCursor(0, 0);
+  // delay(2000);
   display.println("Connecting WiFi...");
   display.display();
-  WiFi.begin(ssid, password);
-  Serial.print("connecting WiFi");
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(100);
-    Serial.print(".");
+  Serial.println("connecting WiFi");
+
+  if (!wifiAdress) {
+    IPAddress local_IP(192, 168, 50, 100 + PLAYER_NUM);
+    IPAddress GATEWAY(192, 168, 50, 1);
+    WiFi.setTimeout(2000);
+    WiFi.config(local_IP);
+    // if (!WiFi.ping(GATEWAY)) {
+    //   Serial.println("failed");
+    //   reboot();
+    // }
   }
+  while (WiFi.status() != WL_CONNECTED) {
+    // delay(100);
+    // Serial.print(".");
+    WiFi.begin(ssid, password);
+  }
+  // delay(1000);
+  // Serial.println(WiFi.status());
+  // WiFi.disconnect();
+  // WiFi.begin(ssid, password);
   Serial.println("\nWiFi connected");
   Serial.println(WiFi.localIP());  // 印出 IP 位址
 
@@ -118,6 +161,12 @@ void connectToWiFi() {
   display.display();
 
   return;
+}
+
+static inline void systemReset() {
+  // Cortex-M0+ 的系統重置觸發位元
+  *(volatile uint32_t*)0xE000ED0C = 0x05FA0004;
+  // 寫完就等它自動 reset
 }
 
 void fetchChunk(int chunk) {
@@ -162,7 +211,7 @@ void fetchChunk(int chunk) {
       Serial.print(chunk);
       display.clearDisplay();
       display.setTextSize(2);
-      display.setCursor(1,1);
+      display.setCursor(1, 1);
       display.println(chunk);
       display.display();
       Serial.println(" success");
@@ -187,7 +236,7 @@ void fetchChunk(int chunk) {
       array[i + CHUNK_SIZE * chunk][2] = player["shoulder"];
       array[i + CHUNK_SIZE * chunk][3] = player["skirt"];
       array[i + CHUNK_SIZE * chunk][4] = player["chest"];
-      array[i + CHUNK_SIZE * chunk][5] = player["front"]; //這是手
+      array[i + CHUNK_SIZE * chunk][5] = player["front"];  //這是手
       array[i + CHUNK_SIZE * chunk][6] = player["leg"];
       array[i + CHUNK_SIZE * chunk][7] = player["shoes"];
       array[i + CHUNK_SIZE * chunk][8] = player["weap_1"];
@@ -264,11 +313,11 @@ int calculateBrightness(unsigned int data) {
   // Serial.print("   data%256: ");
   // Serial.println(data%256);
   // return ((data % 256) * 255) / 100;
-  return pow(1.74 , (data % 256) / 10.0);
+  return pow(1.74, (data % 256) / 10.0);
   // return (data >> 0) & 0xFF;
 }
 
-// Setup when btn1 pressed 
+// Setup when btn1 pressed
 void onButton() {
   ON = true;
   startMainProgram = 1;
@@ -364,6 +413,7 @@ int checkUDP_number() {
   // 檢查是否有 UDP 資料
   int packetSize = udp.parsePacket();
   if (packetSize) {
+    // received = true;
     handleCommand("number");
     // 讀取資料
     byte buffer[4];
@@ -437,6 +487,8 @@ void handleCommand(String command) {
 int currentTime = 0;
 void mainProgram() {  // 照著光表亮
   Serial.println("enter main");
+
+
   while (1) {
     //Serial.println("enter loop");
     // if (ON) {
@@ -452,7 +504,7 @@ void mainProgram() {  // 照著光表亮
         if (ii == -1) {
           display.clearDisplay();
           display.setTextSize(2);
-          display.setCursor(1,1);
+          display.setCursor(1, 1);
           display.println("\n!!stop!!");
           display.display();
           FastLED.clear();
@@ -531,7 +583,8 @@ void debug() {
   FastLED.setBrightness(255);
   FastLED.show();
   delay(1000);
-  while (1);
+  while (1)
+    ;
 }
 
 void setup() {
@@ -546,6 +599,8 @@ void setup() {
   FastLED.addLeds<NEOPIXEL, 6>(leds[4], 5);
   FastLED.addLeds<NEOPIXEL, 7>(leds[5], 3);
 
+  FastLED.clear();
+  FastLED.show();
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -575,15 +630,15 @@ void setup() {
   pinMode(WIFI_PIN, INPUT_PULLUP);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  if (!digitalRead(DEBUG_PIN)){
+  if (!digitalRead(DEBUG_PIN)) {
     debug();
   }
 
   if (digitalRead(WIFI_PIN)) {
+    wifiAdress = true;
     responseAddress = "192.168.0.104";
     ssid = "EE219B";
-  }
-  else {
+  } else {
     responseAddress = "192.168.50.201";
     ssid = "Lightdance";
   }
@@ -636,7 +691,7 @@ void setup() {
   if (wifiMode) {
     Serial.println("Wi-Fi Mode");
     display.println("\nWifi Mode");
-    display.display();    
+    display.display();
     setupWiFiMode();
   } else {
     Serial.println("Memory Mode");
@@ -653,32 +708,43 @@ void setup() {
   Serial.printf("UDP listening on port %d\n", localPort);
   display.clearDisplay();
   display.setTextSize(2);
-  display.setCursor(0,0);
+  display.setCursor(0, 0);
   if (wifiMode) {
     display.println("\nWifi Mode");
-    display.display(); 
-  }
-  else {
+    display.display();
+  } else {
     display.println("Memory Md");
     display.display();
   }
   display.println("\n!!Ready!!");
   display.display();
+  startTime = millis();
 }
 
 void loop() {
   // checkHTTP();
   if (checkUDP_number() > 0) {
+    received = true;
     ON = 1;
     startMainProgram = 1;
   }
   btn1.read();
 
+  // while (!received) {
+  //   if (millis() - startTime >= 10000) {
+  //     // systemReset();
+  //     // IPAddress local_IP(192, 168, 50, 100+PLAYER_NUM);
+  //     // WiFi.config(local_IP);
+  //     Serial.println("reconnect");
+  //     WiFi.begin(ssid, password);
+  //     startTime = millis();
+  //   }
+  // }
   // 根據 API 狀態執行主程式
   if (startMainProgram) {
     display.clearDisplay();
-    display.setTextSize(2);    
-    display.setCursor(1,1);
+    display.setTextSize(2);
+    display.setCursor(1, 1);
     display.println("\n!!run!!");
     display.display();
     // 主程式邏輯

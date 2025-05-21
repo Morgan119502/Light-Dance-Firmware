@@ -181,25 +181,6 @@ def stop_function():
 
     stop_music()
 
-
-    # def broadcast_stop():
-    #     while stop_event.is_set():
-    #         broadcast_message("stop")
-    #         time.sleep(0.01)  # 增加間隔時間以避免 CPU 過載
-
-    # threading.Thread(target=broadcast_stop, daemon=True).start()
-
-    # while stop_event.is_set():
-    #     # 檢查是否所有設備都已回應 "stopped"
-    #     all_stopped = all(device.task_status == "stopped" for device in devices.values())
-
-    #     # 如果所有設備已停止，結束廣播
-    #     if all_stopped:
-    #         print("All devices have stopped.")
-    #         isRunning = False
-    #         stop_event.clear()
-
-
 def exit_action():
     exit_event.set()
     pygame.quit()
