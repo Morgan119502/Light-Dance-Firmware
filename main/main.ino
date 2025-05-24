@@ -15,7 +15,7 @@
 #include "hardware/structs/scb.h"
 #include "hardware/watchdog.h"
 
-#define PLAYER_NUM 3  // 玩家編號
+#define PLAYER_NUM 2  // 玩家編號
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -110,12 +110,12 @@ String memoryData;
 //   delay(100);
 // }
 
-void reboot() {
-  watchdog_enable(1, 1);
-  while (true) {
-    // tight_loop_contents();
-  }
-}
+// void reboot() {
+//   watchdog_enable(1, 1);
+//   while (true) {
+//     // tight_loop_contents();
+//   }
+// }
 
 // Check wifi connection
 void connectToWiFi() {
