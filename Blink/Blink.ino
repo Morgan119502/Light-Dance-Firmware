@@ -19,14 +19,14 @@ IPAddress local_IP(192, 168, 50, 101);
 void setup() {
   // delay(5000);
   Serial.begin(9600);
-  Serial.println("Connecting WiFi...");
+  // Serial.println("Connecting WiFi...");
   
-  WiFi.setTimeout(2000);
-  WiFi.config(local_IP);
-  WiFi.begin("Lightdance", "wifiyee219");
-  while (WiFi.status() != WL_CONNECTED) {
-    WiFi.begin("Lightdance", "wifiyee219");
-  }
+  // WiFi.setTimeout(2000);
+  // WiFi.config(local_IP);
+  // WiFi.begin("Lightdance", "wifiyee219");
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   WiFi.begin("Lightdance", "wifiyee219");
+  // }
 
 //   typedef enum {
 //     WL_NO_SHIELD        = 255,   // for compatibility with WiFi Shield library
@@ -48,17 +48,8 @@ void setup() {
 void loop() {
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 10; j++) {
-      leds[i][j] = CRGB::Red;
+      leds[i][j] = CRGB::White;
     }
   }
   FastLED.show();
-  delay(1000);
-    for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 10; j++) {
-      leds[i][j] = CRGB::Blue;
-    }
-  }
-  
-  FastLED.show();
-  delay(1000);
 }
