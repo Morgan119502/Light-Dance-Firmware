@@ -43,6 +43,8 @@ const char* password = "wifiyee219";  // wifi密碼
 
 // API設定
 const char* remoteUrl = "http://140.113.160.136:8000/items/eesa1/LATEST";  //最後不要加斜線!!!!
+// http://140.113.160.136:419/api/items/eesa1/LATEST
+
 // 全域變數
 WiFiServer server(80);          // 設置 HTTP 伺服器埠
 bool startMainProgram = false;  // 主程式啟動開關
