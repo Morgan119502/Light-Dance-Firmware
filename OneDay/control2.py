@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QThread, Signal, QObject, QUrl
+from PySide6.QtCore import QThread, Signal, QObject, QUrl, QTimer
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 import socket
 import time
@@ -42,8 +42,8 @@ class MusicPlayer(QObject):
     def play_music(self, file_path):
         url = QUrl.fromLocalFile(file_path)
         self.player.setSource(url)
-        self.player.setPosition(int(self.startTime * 1000))
         self.player.play()
+        QTimer.singleShot(100, lambda: self.player.setPosition(int(self.startTime * 1000)+5000))
 
     def stop_music(self):
         self.player.stop()

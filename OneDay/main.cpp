@@ -36,10 +36,10 @@
 #define SCREEN_ADDRESS 0x3C
 
 // Data
-#define MAX_FRAMES 128
-#define CHUNK_SIZE 10
+#define MAX_FRAMES 1000
+#define CHUNK_SIZE 18
 #define BODY_PARTS 15
-#define NUM_CHUNKS 10
+#define NUM_CHUNKS 17
 
 // Network
 #define UDP_RX_PORT 12345
@@ -49,9 +49,9 @@
 #define HEARTBEAT_TIMEOUT 3000
 
 // WiFi Settings
-const char* WIFI_SSID[] = {"EE219B", "Lightdance"};      // "EE219B", "Lightdance"
+const char* WIFI_SSID[] = {"Lightdance", "EE219B"};      // "EE219B", "Lightdance"
 const char* WIFI_PASSWORD = "wifiyee219";     // "wifiyee219", "L
-const char* RESPONSE_ADDRESS[] = {"192.168.0.137", "192.168.1.10"};      // "192.168.0.137"
+const char* RESPONSE_ADDRESS[] = {"192.168.1.11", "192.168.1.10"};      // "192.168.1.10", "192.168.0.137"
 
 // LED Section Mapping - combines all the separate arrays into one structure
 struct LEDSection {
@@ -145,7 +145,7 @@ void connectWiFi(int wifiProfile) {
     showMessage("Connecting\n" + String(WIFI_SSID[wifiProfile]), 1);
     
     // Set static IP for profile 1
-    if (wifiProfile == 1) {
+    if (wifiProfile == 0) {
         IPAddress localIP(192, 168, 1, 100 + PLAYER_NUM);
         WiFi.config(localIP);
     }
@@ -214,7 +214,12 @@ bool downloadChunk(int chunkNumber) {
 
     for (int i = 0; i < numFrames && i < CHUNK_SIZE; i++) {
         int frameIndex = chunkNumber * CHUNK_SIZE + i;
+        if(frameIndex > MAX_FRAMES) break;
         frameData[frameIndex][0]  = players[i]["time"].as<unsigned int>();
+        Serial.print("Index ");
+        Serial.print(frameIndex);
+        Serial.print(" time: ");
+        Serial.println(frameData[frameIndex][0]);
         frameData[frameIndex][1]  = players[i]["hat"].as<unsigned int>();
         frameData[frameIndex][2]  = players[i]["face"].as<unsigned int>();
         frameData[frameIndex][3]  = players[i]["chestL"].as<unsigned int>();
@@ -479,9 +484,11 @@ void setup() {
     });
     
     // Connect to WiFi (profile selected by WIFI_PIN)
-    wifiProfile = 0;
+    wifiProfile = digitalRead(WIFI_PIN) ? 0 : 1;
     deviceId = "player" + String(PLAYER_NUM);
     connectWiFi(wifiProfile);
+
+    
     
     // Initialize LED strips        CRGB led1[6], led2[8], led3[8], led4[1], led5[3], led6[3], led7[1], led8[1];
     FastLED.addLeds<NEOPIXEL, 2>(ledArrays[0], 6);
@@ -523,7 +530,7 @@ void setup() {
     // }
     
     // Load animation data - WiFi download ONLY happens here in setup
-    bool useMemoryMode = !digitalRead(SWITCH_PIN);
+    bool useMemoryMode = digitalRead(SWITCH_PIN);
     if (useMemoryMode) {
         showMessage("Loading from\nmemory...");
         loadDataFromMemory();
@@ -559,6 +566,11 @@ void setup() {
             loadDataFromMemory();  // Fallback to stored data
         }
     }
+    // for(int i = 0; i < MAX_FRAMES; i++){
+    //     Serial.println(frameData[currentFrameIndex+1][0]);
+    //     Serial.println(frameData[currentFrameIndex+1][1]);
+    // }
+
     Serial.println("ip: " + WiFi.localIP().toString());
     // Start UDP listener
     udp.begin(UDP_RX_PORT);
@@ -639,10 +651,14 @@ void loop() {
             Serial.print("currentFrame: ");
             Serial.println(currentFrame);
             
-
+            
             // Advance to current time position (skip frames if needed)
             while (currentFrameIndex+1 < MAX_FRAMES && 
                    frameData[currentFrameIndex+1][0] < currentFrame) {
+                // Serial.print("Index ");
+                // Serial.print(currentFrameIndex);
+                // Serial.print(" time: ");
+                // Serial.println(frameData[currentFrameIndex+1][0]);
                 currentFrameIndex++;
             }
             Serial.print("currentFrameIndex: ");
