@@ -13,7 +13,7 @@ from ui import DeviceMonitorWindow
 # ============================================================
 # MUSIC FILE PATH
 # ============================================================
-MUSIC_FILE = r"C:\School_2025\LightDance\picow-pio-template\test music\无标题视频——使用Clipchamp制作.mp3"
+MUSIC_FILE = r"C:\Users\morga\Light-Dance-Firmware\OneDay\无标题视频——使用Clipchamp制作.mp3"
 
 
 # ============================================================
